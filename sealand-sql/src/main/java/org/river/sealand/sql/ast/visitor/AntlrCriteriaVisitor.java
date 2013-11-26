@@ -286,7 +286,7 @@ public class AntlrCriteriaVisitor extends AntlrTreeVisitor {
 	private SqlExpr visitOperate(ParseTree tree, Parser parser) throws SQLException {
 		SqlExpr left = (SqlExpr) ASTStructUtils.getVisitor(Rule.EXPRESSION).visit(tree.getChild(0), parser);
 		SqlExpr right = (SqlExpr) ASTStructUtils.getVisitor(Rule.EXPRESSION).visit(tree.getChild(2), parser);
-		String operatorStr = ((TerminalNode) tree.getChild(2)).getText();
+		String operatorStr = ((TerminalNode) tree.getChild(1)).getText();
 		SqlExpr expr = new SqlExpr();
 		expr.getElements().add(left);
 		expr.getElements().add(right);
@@ -321,7 +321,7 @@ public class AntlrCriteriaVisitor extends AntlrTreeVisitor {
 	@Override
 	public boolean accept(ParseTree tree, Parser parser) {
 		Rule rule = AntlrTreeUtils.getRule(tree, parser);
-		return rule == Rule.HAVING_CLAUSE || rule == Rule.WHERE_CLAUSE || rule == Rule.JOIN_CONDITION;
+		return rule == Rule.CRITERIA;
 	}
 
 }

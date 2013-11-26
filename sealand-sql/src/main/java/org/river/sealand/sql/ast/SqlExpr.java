@@ -13,9 +13,9 @@ public class SqlExpr implements ISqlStruct {
 
 	/** 表达式类型 */
 	protected Type type;
-	
-	/**值类型，变量类型*/
-	protected Object value;	
+
+	/** 值类型，变量类型 */
+	protected Object value;
 
 	public SqlExpr() {
 		super();
@@ -24,7 +24,7 @@ public class SqlExpr implements ISqlStruct {
 	public SqlExpr(Object value) {
 		super();
 		this.value = value;
-		this.type=Type.VALUE;
+		this.type = Type.VALUE;
 	}
 
 	public List<SqlExpr> getElements() {
@@ -49,8 +49,8 @@ public class SqlExpr implements ISqlStruct {
 
 	public void setType(Type type) {
 		this.type = type;
-	}	
-	
+	}
+
 	public Object getValue() {
 		return value;
 	}
@@ -60,12 +60,83 @@ public class SqlExpr implements ISqlStruct {
 	}
 
 	public static enum Type {
-		FUNC, VALUE, COMP,VARIABLE;
+		FUNC, VALUE, COMP, VARIABLE;
 	}
-	
+
 	@Override
 	public SqlType getSqlType() {
 		return SqlType.EXPRESSION;
+	}
+
+	@Override
+	public String toString() {
+		switch (this.type) {
+		case VALUE:{
+			if(value instanceof Number){
+				return value.toString();
+			}else{
+				return "'" + value.toString() + "'";
+			}			
+		}			
+		case VARIABLE:
+			return value.toString();
+		case FUNC: {
+			StringBuffer sb = new StringBuffer();
+			SqlExpr first = elements.get(0);
+			sb.append(first.toString());
+			sb.append("(");
+			int size = elements.size();
+			if (size > 1) {
+				boolean flag = true;
+				for (int i = 1; i < size; i++) {
+					if (!flag) {
+						sb.append(",").append(elements.get(i).toString());
+					} else {
+						sb.append(elements.get(i).toString());
+						flag = false;
+					}
+
+				}
+			}
+			sb.append(")");
+
+			return sb.toString();
+		}
+		case COMP:
+			return "("+this.compExprToString()+")";
+		default:
+			return null;
+		}
+
+	}
+
+	private String compExprToString() {
+		switch (this.operator) {
+		case NOT:
+			return SqlOperator.NOT.getValue()+" ("+elements.get(0).toString()+")";
+		case BETWEEN:
+			return elements.get(0).toString()+" "+Keyword.BETWEEN+" ("+elements.get(1).toString()+") AND ("+elements.get(2).toString()+")";
+		case IN:{
+			StringBuffer sb=new StringBuffer(elements.get(0).toString()).append(" ");
+			sb.append("IN").append(" (");
+			boolean flag=true;
+			for(int i=1;i<elements.size();i++){
+				if (!flag) {
+					sb.append(",").append(elements.get(i).toString());
+				} else {
+					sb.append(elements.get(i).toString());
+					flag = false;
+				}
+			}
+			sb.append(")");
+			return sb.toString();
+		}			
+		case EXIST:
+			return Keyword.EXIST+ "("+elements.get(0).toString()+")";
+		default:{
+			return elements.get(0).toString()+" "+this.operator.getValue()+" "+elements.get(1).toString();
+		}
+		}
 	}
 
 }

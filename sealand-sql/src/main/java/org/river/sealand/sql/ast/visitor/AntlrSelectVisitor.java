@@ -36,7 +36,7 @@ public class AntlrSelectVisitor extends AntlrTreeVisitor {
 	protected ISqlStruct doVisit(ParseTree tree, Parser parser) throws SQLException {
 		Rule rule = AntlrTreeUtils.getRule(tree, parser);
 		switch (rule) {
-		case STATEMENT:
+		case SELECT_STMT:
 			return this.visitStatement(tree, parser);
 		case SELECT_CLAUSE:
 			return this.visitSelect(tree, parser);
@@ -99,7 +99,7 @@ public class AntlrSelectVisitor extends AntlrTreeVisitor {
 			if (!(tmp instanceof RuleNode)) {
 				continue;
 			}
-			Rule rule = AntlrTreeUtils.getRule(tree, parser);
+			Rule rule = AntlrTreeUtils.getRule(tmp, parser);
 			if (rule == Rule.SELECT_LIST) {
 				select.setSelectFields(this.visitSelectList(tmp, parser));
 				continue;
@@ -182,7 +182,7 @@ public class AntlrSelectVisitor extends AntlrTreeVisitor {
 				continue;
 			}
 
-			refs.add(this.visitTableAtom(tree, parser));
+			refs.add(this.visitTableAtom(node, parser));
 		}
 		return refs;
 	}
@@ -300,7 +300,20 @@ public class AntlrSelectVisitor extends AntlrTreeVisitor {
 	 * @return
 	 */
 	private SqlBoolExpr visitWhere(ParseTree tree, Parser parser) throws SQLException {
-		return (SqlBoolExpr) ASTStructUtils.getVisitor(Rule.WHERE_CLAUSE).visit(tree, parser);
+		ParseTree criteria = null;
+		for (int i = 0; i < tree.getChildCount(); i++) {
+			ParseTree node=tree.getChild(i);
+			if(node  instanceof TerminalNode){
+				continue;
+			}
+			
+			Rule rule=AntlrTreeUtils.getRule(node, parser);
+			if(rule==Rule.CRITERIA){
+				criteria=node;
+				break;
+			}
+		}
+		return (SqlBoolExpr) ASTStructUtils.getVisitor(Rule.CRITERIA).visit(criteria, parser);
 	}
 
 	/*
@@ -405,11 +418,9 @@ public class AntlrSelectVisitor extends AntlrTreeVisitor {
 				sb.append(ASTStructUtils.getVisitor(Rule.EXPRESSION).visit(node, parser));
 				sb.append(" ");
 			} else if (node instanceof TerminalNode) {
-				Token symbol = ((TerminalNode) node).getSymbol();
-				if (symbol != null) {
-					sb.append(symbol.getText());
-					sb.append(" ");
-				}
+				String text = ((TerminalNode) node).getText();
+				sb.append(text);
+				sb.append(" ");
 			}
 		}
 		return sb.toString().trim();
@@ -417,13 +428,13 @@ public class AntlrSelectVisitor extends AntlrTreeVisitor {
 
 	@Override
 	protected Rule getRule() {
-		return Rule.STATEMENT;
+		return Rule.SELECT_STMT;
 	}
 
 	@Override
 	public boolean accept(ParseTree tree, Parser parser) {
 		Rule rule = AntlrTreeUtils.getRule(tree, parser);
-		return Rule.STATEMENT == rule || Rule.SELECT_CLAUSE == rule;
+		return Rule.SELECT_STMT == rule || Rule.SELECT_CLAUSE == rule;
 	}
 
 }

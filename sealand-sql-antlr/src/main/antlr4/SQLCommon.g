@@ -67,13 +67,13 @@ order_by_item: (sql_id | INT) (ASC | DESC)? ;
 limit_clause: LIMIT ((INT COMMA)? INT);
 
 display_column 
-        : sql_id
-        | sql_id DOT ASTERISK
-        | ASTERISK
-        | expression
+        : expression
         | expression(sql_id)? 
         | expression(AS sql_id)?
         | case_when_clause
+        | sql_id DOT ASTERISK
+        | ASTERISK
+        | sql_id
         ;
         
 criteria

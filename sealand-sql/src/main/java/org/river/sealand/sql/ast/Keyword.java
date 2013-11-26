@@ -20,6 +20,12 @@ public class Keyword {
 	
 	public static final String NOT="NOT";
 	
+	public static final String BETWEEN="BETWEEN";
+	
+	public static final String AND="AND";
+	
+	public static final String EXIST="EXIST";
+	
 	public static final String LPAREN="(";
 	
 	public static final String RPAREN=")";

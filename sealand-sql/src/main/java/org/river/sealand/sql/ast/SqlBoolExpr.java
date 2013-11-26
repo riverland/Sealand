@@ -16,7 +16,7 @@ public class SqlBoolExpr extends SqlExpr {
 	}
 
 	public SqlBoolExpr(SqlExpr expr) {
-		
+		this.elements.add(expr);
 	}
 
 	/**

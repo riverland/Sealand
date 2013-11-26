@@ -2,6 +2,7 @@ package org.river.sealand.sql.ast.visitor;
 
 import org.antlr.v4.runtime.Parser;
 import org.antlr.v4.runtime.tree.ParseTree;
+import org.antlr.v4.runtime.tree.TerminalNode;
 import org.river.sealand.sql.ast.ISqlStruct;
 import org.river.sealand.sql.util.SQLException;
 /**
@@ -57,7 +58,14 @@ public abstract class AntlrTreeVisitor implements IAntlrTreeVisitor {
 	 * @return
 	 */
 	protected String visitSqlId(ParseTree tree,Parser parser){
-		return null;
+		StringBuffer sb = new StringBuffer();
+		for (int i = 0; i < tree.getChildCount(); i++) {
+			ParseTree node=tree.getChild(i);
+			String text=((TerminalNode)node).getText();
+			sb.append(text.trim());
+		}
+		
+		return sb.toString();
 	}
 	
 }

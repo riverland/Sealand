@@ -53,4 +53,10 @@ public class SqlCalcExpr extends SqlExpr {
 		return SqlType.EXPRESSION;
 	}
 
+	@Override
+	public String toString() {
+		return super.toString();
+	}
+
+	
 }
