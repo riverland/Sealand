@@ -9,8 +9,8 @@ import junit.framework.TestCase;
 import org.antlr.v4.runtime.ANTLRInputStream;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.tree.ParseTree;
-import org.river.sealand.sql.syntex.SQLCommonLexer;
-import org.river.sealand.sql.syntex.SQLCommonParser;
+import org.river.sealand.sql.syntax.SQLCommonLexer;
+import org.river.sealand.sql.syntax.SQLCommonParser;
 
 /**
  * <p>
