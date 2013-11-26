@@ -14,11 +14,11 @@ public class SqlUpdate implements ISqlStruct {
 	/** update 操作的表 */
 	private String tableName;;
 
-	/** update 列表,String:左值列名 SqlExpression:右值表达式 */
-	private Map<String, SqlExpr> sets = new HashMap<String, SqlExpr>();
+	/** update 列表,String:左值列名 SqlBoolExpression:右值表达式 */
+	private Map<String, SqlBoolExpr> sets = new HashMap<String, SqlBoolExpr>();
 
 	/** 条件表达式 */
-	private SqlExpr where;
+	private SqlBoolExpr where;
 
 	public String getTableName() {
 		return tableName;
@@ -28,19 +28,19 @@ public class SqlUpdate implements ISqlStruct {
 		this.tableName = tableName;
 	}
 
-	public Map<String, SqlExpr> getSets() {
+	public Map<String, SqlBoolExpr> getSets() {
 		return sets;
 	}
 
-	public void setSets(Map<String, SqlExpr> sets) {
+	public void setSets(Map<String, SqlBoolExpr> sets) {
 		this.sets = sets;
 	}
 
-	public SqlExpr getWhere() {
+	public SqlBoolExpr getWhere() {
 		return where;
 	}
 
-	public void setWhere(SqlExpr where) {
+	public void setWhere(SqlBoolExpr where) {
 		this.where = where;
 	}
 

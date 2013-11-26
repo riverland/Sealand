@@ -17,6 +17,17 @@ public class SqlJoin implements ISqlStruct {
 
 	/** 连接类型 */
 	private JoinType joinType;
+	
+	/**连接条件*/
+	private SqlBoolExpr on;
+
+	public SqlBoolExpr getOn() {
+		return on;
+	}
+
+	public void setOn(SqlBoolExpr on) {
+		this.on = on;
+	}
 
 	public SqlTabReference getLeft() {
 		return left;

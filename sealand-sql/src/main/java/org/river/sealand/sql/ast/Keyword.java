@@ -13,4 +13,15 @@ public class Keyword {
 	public static final String LIMIT="LIMIT";
 	
 	public static final String UNION_ALL_PATTERN="^([u|U][n|N][i|I][o|O][n|N])[\\0|\\t]+([a|A][l|L][l|L])$";
+	
+	public static final String ASC="ASC";
+	
+	public static final String DESC="DESC";
+	
+	public static final String NOT="NOT";
+	
+	public static final String LPAREN="(";
+	
+	public static final String RPAREN=")";
+	
 }

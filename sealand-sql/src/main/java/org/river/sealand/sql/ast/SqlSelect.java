@@ -15,16 +15,16 @@ public class SqlSelect implements ISqlStruct {
 	private List<String> selectFields = new ArrayList<String>();
 
 	/** from 子句中的表或子查询 */
-	private List<SqlSelect> fromTbls = new ArrayList<SqlSelect>();
+	private List<SqlTabReference> fromTbls = new ArrayList<SqlTabReference>();
 
 	/** group by */
 	private SqlGroupBy groupBy;
 
 	/** 条件表达式，对应having */
-	private SqlExpr having;
+	private SqlBoolExpr having;
 
 	/** 条件表达式，对应where on */
-	private SqlExpr criteria;
+	private SqlBoolExpr criteria;
 
 	/** 查询排序 */
 	private SqlSort orderby;
@@ -50,11 +50,11 @@ public class SqlSelect implements ISqlStruct {
 		this.selectFields = selectFields;
 	}
 
-	public List<SqlSelect> getFromTbls() {
+	public List<SqlTabReference> getFromTbls() {
 		return fromTbls;
 	}
 
-	public void setFromTbls(List<SqlSelect> fromTbls) {
+	public void setFromTbls(List<SqlTabReference> fromTbls) {
 		this.fromTbls = fromTbls;
 	}
 
@@ -66,19 +66,19 @@ public class SqlSelect implements ISqlStruct {
 		this.groupBy = groupBy;
 	}
 
-	public SqlExpr getHaving() {
+	public SqlBoolExpr getHaving() {
 		return having;
 	}
 
-	public void setHaving(SqlExpr having) {
+	public void setHaving(SqlBoolExpr having) {
 		this.having = having;
 	}
 
-	public SqlExpr getCriteria() {
+	public SqlBoolExpr getCriteria() {
 		return criteria;
 	}
 
-	public void setCriteria(SqlExpr criteria) {
+	public void setCriteria(SqlBoolExpr criteria) {
 		this.criteria = criteria;
 	}
 

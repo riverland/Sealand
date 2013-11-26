@@ -77,14 +77,13 @@ display_column
         ;
         
 criteria
-        : expression (EQ|GT|LT|GE|LE|AND|OR|LIKE) expression
+        : criteria ((AND|OR)  criteria)+
+        | LPAREN criteria RPAREN
+        | NOT criteria
+        | expression (EQ|GT|LT|GE|LE|LIKE) expression
         | between_expr
         | in_expr
-        | exist_expr
-        | NOT expression         
-        | LPAREN criteria RPAREN
-        | criteria (AND|OR)  criteria
-        | NOT criteria
+        | exist_expr  
         ;
         
 between_expr  
@@ -97,18 +96,20 @@ exist_expr
         ;
         
 in_expr
-        : expression IN LPAREN expression (COMMA expression)* RPAREN
+        : expression IN LPAREN values_list RPAREN
         | expression IN sub_query
         | expression IN LPAREN sub_query RPAREN
         ;
         
-expression: expression (ASTERISK|DIV) expression
+expression
+        : expression (ASTERISK|DIV) expression
         | expression (PLUS|MINUS) expression  
-        | literal_value
-        | sql_id       
         | LPAREN expression RPAREN
         | sql_id LPAREN expression(COMMA expression)* RPAREN
         | sql_id LPAREN RPAREN 
+        | char_literal
+        | number
+        | sql_id  
         ;
         
 case_when_clause
@@ -133,10 +134,10 @@ case_when_clause_1:
 table_refs: table_atom (COMMA table_atom)*;
         
 table_atom
-        : sql_id (ID)?
-        | sql_id (AS ID)?
-        | sub_query (ID)?
-        | sub_query (AS ID)?
+        : sql_id (sql_id)?
+        | sql_id (AS sql_id)?
+        | sub_query (sql_id)?
+        | sub_query (AS sql_id)?
         | table_atom (  (LEFT|RIGHT) (OUTER)? JOIN table_atom join_condition)+
         ;
         
@@ -147,19 +148,18 @@ sub_query
         ;
         
 literal_value
-        : CHAR_LITERAL 
-        | number_literal 
-        | number
+        : char_literal 
+        | (PLUS|MINUS)?(INT|FLOAT)
         | HEX 
         | BOOLEAN 
         | BIT 
         | NULL
         ;
         
-number:(INT DOT INT | INT DOT | DOT INT | INT  )(E_SYM(PLUS | MINUS )? INT)? ;    
-number_literal: (PLUS|MINUS)? (INT| number) ; 
-
+//number:(INT DOT INT | INT DOT | DOT INT | INT  )(E_SYM(PLUS | MINUS )? INT)? ;    
+number: (PLUS|MINUS)? (INT| FLOAT) ; 
+char_literal: CHAR_LITERAL;
 
 /**DDL**/
 
-sql_id :( ( ID DOT )? ID DOT )? ID ; 
+sql_id :( ( ID DOT )? ID DOT )? (ID|ASTERISK) ; 

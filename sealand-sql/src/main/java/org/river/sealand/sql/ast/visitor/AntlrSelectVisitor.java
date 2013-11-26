@@ -1,5 +1,6 @@
 package org.river.sealand.sql.ast.visitor;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.antlr.v4.runtime.Parser;
@@ -7,14 +8,20 @@ import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.RuleNode;
 import org.antlr.v4.runtime.tree.TerminalNode;
+import org.river.sealand.sql.ast.ASTStructUtils;
 import org.river.sealand.sql.ast.ISqlStruct;
 import org.river.sealand.sql.ast.Keyword;
-import org.river.sealand.sql.ast.SqlExpr;
+import org.river.sealand.sql.ast.SqlBoolExpr;
 import org.river.sealand.sql.ast.SqlGroupBy;
+import org.river.sealand.sql.ast.SqlJoin;
 import org.river.sealand.sql.ast.SqlLimit;
 import org.river.sealand.sql.ast.SqlSelect;
 import org.river.sealand.sql.ast.SqlSort;
+import org.river.sealand.sql.ast.SqlTabReference;
+import org.river.sealand.sql.ast.SqlTabReference.RefType;
+import org.river.sealand.sql.ast.SqlTable;
 import org.river.sealand.sql.ast.SqlUnion;
+import org.river.sealand.sql.util.SQLException;
 
 /**
  * <p>
@@ -26,7 +33,7 @@ import org.river.sealand.sql.ast.SqlUnion;
 public class AntlrSelectVisitor extends AntlrTreeVisitor {
 
 	@Override
-	protected ISqlStruct doVisit(ParseTree tree, Parser parser) {
+	protected ISqlStruct doVisit(ParseTree tree, Parser parser) throws SQLException {
 		Rule rule = AntlrTreeUtils.getRule(tree, parser);
 		switch (rule) {
 		case STATEMENT:
@@ -47,7 +54,7 @@ public class AntlrSelectVisitor extends AntlrTreeVisitor {
 	 * 
 	 * @return
 	 */
-	private ISqlStruct visitStatement(ParseTree tree, Parser parser) {
+	private ISqlStruct visitStatement(ParseTree tree, Parser parser) throws SQLException {
 		ISqlStruct stmt = null;
 		int len = tree.getChildCount();
 		if (len > 1) {
@@ -84,7 +91,7 @@ public class AntlrSelectVisitor extends AntlrTreeVisitor {
 	 * 
 	 * @return
 	 */
-	private SqlSelect visitSelect(ParseTree tree, Parser parser) {
+	private SqlSelect visitSelect(ParseTree tree, Parser parser) throws SQLException {
 		SqlSelect select = new SqlSelect();
 		for (int i = 0; i < tree.getChildCount(); i++) {
 			ParseTree tmp = tree.getChild(i);
@@ -114,7 +121,7 @@ public class AntlrSelectVisitor extends AntlrTreeVisitor {
 			}
 
 			if (rule == Rule.HAVING_CLAUSE) {
-				select.setHaving(this.visithaving(tmp, parser));
+				select.setHaving(this.visitHaving(tmp, parser));
 				continue;
 			}
 
@@ -139,8 +146,22 @@ public class AntlrSelectVisitor extends AntlrTreeVisitor {
 	 * 
 	 * @return
 	 */
-	private List<String> visitSelectList(ParseTree tree, Parser parser) {
-		return null;
+	private List<String> visitSelectList(ParseTree tree, Parser parser) throws SQLException {
+		List<String> columns = new ArrayList<String>();
+		for (int i = 0; i < tree.getChildCount(); i++) {
+			ParseTree node = tree.getChild(i);
+			if (!(node instanceof RuleNode)) {
+				continue;
+			}
+
+			Rule rule = AntlrTreeUtils.getRule(node, parser);
+			if (rule != Rule.DISPLAY_COLUMN) {
+				continue;
+			}
+
+			columns.add(this.visitDisplayColumn(node, parser));
+		}
+		return columns;
 	}
 
 	/*
@@ -152,8 +173,121 @@ public class AntlrSelectVisitor extends AntlrTreeVisitor {
 	 * 
 	 * @return
 	 */
-	private List<SqlSelect> visitTableRefs(ParseTree tree, Parser parser) {
+	private List<SqlTabReference> visitTableRefs(ParseTree tree, Parser parser) throws SQLException {
+		List<SqlTabReference> refs = new ArrayList<SqlTabReference>();
+
+		for (int i = 0; i < tree.getChildCount(); i++) {
+			ParseTree node = tree.getChild(i);
+			if (!(node instanceof RuleNode)) {
+				continue;
+			}
+
+			refs.add(this.visitTableAtom(tree, parser));
+		}
+		return refs;
+	}
+
+	/*
+	 * 解析访问规则table_atom
+	 * 
+	 * @param tree
+	 * 
+	 * @param parser
+	 * 
+	 * @return
+	 */
+	private SqlTabReference visitTableAtom(ParseTree tree, Parser parser) throws SQLException {
+
+		ParseTree node = tree.getChild(0);
+		if (!(node instanceof RuleNode)) {
+			return null;
+		}
+
+		Rule rule = AntlrTreeUtils.getRule(node, parser);
+		if (rule == Rule.SQL_ID) {
+			return this.visitTableAtom4Table(tree, parser);
+		} else if (rule == Rule.SUB_QUERY) {
+			return this.visitTableAtom4SubQuery(tree, parser);
+		} else if (rule == Rule.TABLE_ATOM) {
+			return this.visitTableAtom4Join(tree, parser);
+		}
+
 		return null;
+	}
+
+	/*
+	 * 解析访问规则table_atom
+	 * 
+	 * @param tree
+	 * 
+	 * @param parser
+	 * 
+	 * @return
+	 */
+	private SqlTabReference visitTableAtom4Table(ParseTree tree, Parser parser) {
+		SqlTabReference ref = new SqlTabReference();
+
+		ParseTree child0 = tree.getChild(0);
+		SqlTable tab = new SqlTable();
+		tab.setTableName(this.visitSqlId(child0, parser));
+		ref.setRef(tab);
+		ref.setRefType(RefType.TABLE);
+
+		final int count = tree.getChildCount();
+		if (count == 2) {
+			ParseTree child1 = tree.getChild(1);
+			ref.setAlias(this.visitSqlId(child1, parser));
+		} else if (count == 3) {
+			ParseTree child2 = tree.getChild(2);
+			ref.setAlias(this.visitSqlId(child2, parser));
+		}
+
+		return ref;
+	}
+
+	/*
+	 * 解析访问规则table_atom
+	 * 
+	 * @param tree
+	 * 
+	 * @param parser
+	 * 
+	 * @return
+	 */
+	private SqlTabReference visitTableAtom4Join(ParseTree tree, Parser parser) throws SQLException {
+		SqlTabReference ref = new SqlTabReference();
+		ref.setRefType(RefType.JOIN);
+		SqlJoin join = new SqlJoin();
+		ref.setRef(join);
+		join.setLeft(this.visitTableAtom(tree.getChild(0), parser));
+		join.setOn(this.visitWhere(tree, parser));
+		join.setRight(this.visitTableAtom(tree.getChild(2), parser));
+		return ref;
+	}
+
+	/*
+	 * 解析访问规则table_atom
+	 * 
+	 * @param tree
+	 * 
+	 * @param parser
+	 * 
+	 * @return
+	 */
+	private SqlTabReference visitTableAtom4SubQuery(ParseTree tree, Parser parser) throws SQLException {
+		SqlTabReference ref = new SqlTabReference();
+		ref.setRefType(RefType.SUB_SELECT);
+		ref.setRef(this.visit(tree.getChild(0), parser));
+
+		final int count = tree.getChildCount();
+		if (count == 2) {
+			ParseTree child1 = tree.getChild(1);
+			ref.setAlias(this.visitSqlId(child1, parser));
+		} else if (count == 3) {
+			ParseTree child2 = tree.getChild(2);
+			ref.setAlias(this.visitSqlId(child2, parser));
+		}
+		return ref;
 	}
 
 	/*
@@ -165,8 +299,8 @@ public class AntlrSelectVisitor extends AntlrTreeVisitor {
 	 * 
 	 * @return
 	 */
-	private SqlExpr visitWhere(ParseTree tree, Parser parser) {
-		return null;
+	private SqlBoolExpr visitWhere(ParseTree tree, Parser parser) throws SQLException {
+		return (SqlBoolExpr) ASTStructUtils.getVisitor(Rule.WHERE_CLAUSE).visit(tree, parser);
 	}
 
 	/*
@@ -178,8 +312,16 @@ public class AntlrSelectVisitor extends AntlrTreeVisitor {
 	 * 
 	 * @return
 	 */
-	private SqlGroupBy visitGroupBy(ParseTree tree, Parser parser) {
-		return null;
+	private SqlGroupBy visitGroupBy(ParseTree tree, Parser parser) throws SQLException {
+		String fields[] = new String[tree.getChildCount()];
+		SqlGroupBy groupBy = new SqlGroupBy(fields);
+		for (int i = 0; i < tree.getChildCount(); i++) {
+			ParseTree node = tree.getChild(i);
+			if (node instanceof RuleNode) {
+				fields[i] = ASTStructUtils.getVisitor(Rule.EXPRESSION).visit(node, parser).toString();
+			}
+		}
+		return groupBy;
 	}
 
 	/*
@@ -191,8 +333,8 @@ public class AntlrSelectVisitor extends AntlrTreeVisitor {
 	 * 
 	 * @return
 	 */
-	private SqlExpr visithaving(ParseTree tree, Parser parser) {
-		return null;
+	private SqlBoolExpr visitHaving(ParseTree tree, Parser parser) throws SQLException {
+		return (SqlBoolExpr) ASTStructUtils.getVisitor(Rule.WHERE_CLAUSE).visit(tree, parser);
 	}
 
 	/*
@@ -204,10 +346,25 @@ public class AntlrSelectVisitor extends AntlrTreeVisitor {
 	 * 
 	 * @return
 	 */
-	private SqlSort visitOrderBy(ParseTree tree, Parser parser) {
-		return null;
+	private SqlSort visitOrderBy(ParseTree tree, Parser parser) throws SQLException {
+		SqlSort sort = new SqlSort();
+		for (int i = 0; i < tree.getChildCount(); i++) {
+			ParseTree node = tree.getChild(i);
+			String fieldName = ASTStructUtils.getVisitor(Rule.EXPRESSION).visit(node.getChild(0), parser).toString();
+			if (node.getChildCount() == 2) {
+				Token symbol = ((TerminalNode) node).getSymbol();
+				if (Keyword.ASC.equals(symbol.getText().trim().toUpperCase())) {
+					sort.asc(fieldName);
+				} else {
+					sort.desc(fieldName);
+				}
+			} else {
+				sort.asc(fieldName);
+			}
+		}
+		return sort;
 	}
-	
+
 	/*
 	 * 解析访问规则limit_clause
 	 * 
@@ -217,8 +374,45 @@ public class AntlrSelectVisitor extends AntlrTreeVisitor {
 	 * 
 	 * @return
 	 */
-	private SqlLimit visitLimit(ParseTree tree, Parser parser) {
-		return null;
+	private SqlLimit visitLimit(ParseTree tree, Parser parser) throws SQLException {
+		int row = 0;
+		int offset = 0;
+		int count = tree.getChildCount();
+		if (count == 2) {
+			offset = Integer.valueOf(ASTStructUtils.getVisitor(Rule.EXPRESSION).visit(tree.getChild(1), parser).toString().trim());
+		} else if (count == 4) {
+			row = Integer.valueOf(ASTStructUtils.getVisitor(Rule.EXPRESSION).visit(tree.getChild(1), parser).toString().trim());
+			offset = Integer.valueOf(ASTStructUtils.getVisitor(Rule.EXPRESSION).visit(tree.getChild(3), parser).toString().trim());
+		}
+		SqlLimit limit = new SqlLimit(row, offset);
+		return limit;
+	}
+
+	/*
+	 * 解析访问规则display_column
+	 * 
+	 * @param tree
+	 * 
+	 * @param parser
+	 * 
+	 * @return
+	 */
+	private String visitDisplayColumn(ParseTree tree, Parser parser) throws SQLException {
+		StringBuffer sb = new StringBuffer();
+		for (int i = 0; i < tree.getChildCount(); i++) {
+			ParseTree node = tree.getChild(i);
+			if (node instanceof RuleNode) {
+				sb.append(ASTStructUtils.getVisitor(Rule.EXPRESSION).visit(node, parser));
+				sb.append(" ");
+			} else if (node instanceof TerminalNode) {
+				Token symbol = ((TerminalNode) node).getSymbol();
+				if (symbol != null) {
+					sb.append(symbol.getText());
+					sb.append(" ");
+				}
+			}
+		}
+		return sb.toString().trim();
 	}
 
 	@Override

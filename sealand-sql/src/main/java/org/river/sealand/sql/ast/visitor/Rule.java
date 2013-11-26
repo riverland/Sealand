@@ -43,7 +43,7 @@ public enum Rule {
 	SUB_QUERY("sub_query"), 
 	LITERAL_VALUE("literal_value"), 
 	NUMBER("number"), 
-	NUMBER_LITERAL("number_literal"), 
+	CHAR_LITERAL("char_literal"), 
 	SQL_ID("sql_id");
 	
 

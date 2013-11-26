@@ -10,7 +10,7 @@ package org.river.sealand.sql.ast;
 public class SqlDelete implements ISqlStruct{
 	private String tableName;
 
-	private SqlExpr where;
+	private SqlBoolExpr where;
 
 	public String getTableName() {
 		return tableName;
@@ -20,11 +20,11 @@ public class SqlDelete implements ISqlStruct{
 		this.tableName = tableName;
 	}
 
-	public SqlExpr getWhere() {
+	public SqlBoolExpr getWhere() {
 		return where;
 	}
 
-	public void setWhere(SqlExpr where) {
+	public void setWhere(SqlBoolExpr where) {
 		this.where = where;
 	}
 

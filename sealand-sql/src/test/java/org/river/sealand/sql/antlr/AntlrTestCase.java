@@ -11,6 +11,7 @@ import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.river.sealand.sql.syntex.SQLCommonLexer;
 import org.river.sealand.sql.syntex.SQLCommonParser;
+
 /**
  * <p>
  * antlr 相关单元测试
@@ -20,7 +21,11 @@ import org.river.sealand.sql.syntex.SQLCommonParser;
 public class AntlrTestCase extends TestCase {
 	
 	public void testParser() throws IOException{
-		final String sql="select * from T_A a where a.id=123 union all select * from T_B";		
+//		final String sql="select a.id AS ID,123,S.a.* from T_A a left join T_B b on a.id=b.id where a.id=123";		
+		
+//		final String sql="select * from T_A a where a.k=123 and a.id between 1 and 123 and (a.name='z' or a.sex='m')";		
+		final String sql="select ab,-1,'zhangsan' from T_A where id=1";		
+		
 		InputStream ins=new ByteArrayInputStream(sql.getBytes());
 		
 		ANTLRInputStream input=new ANTLRInputStream(ins);
@@ -33,5 +38,6 @@ public class AntlrTestCase extends TestCase {
 		ParseTree tree=sqlParser.statement();
 		
 		System.out.println(tree.toStringTree(sqlParser));
+//		(expression (expression (number 1)) + (expression (number 1)))
 	}
 }

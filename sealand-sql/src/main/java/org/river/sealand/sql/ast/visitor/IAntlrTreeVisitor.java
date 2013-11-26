@@ -3,6 +3,7 @@ package org.river.sealand.sql.ast.visitor;
 import org.antlr.v4.runtime.Parser;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.river.sealand.sql.ast.ISqlStruct;
+import org.river.sealand.sql.util.SQLException;
 
 /**
  * <p>
@@ -17,6 +18,7 @@ public interface IAntlrTreeVisitor {
 	 * 访问语法树的一个节点
 	 * @param tree
 	 * @return
+	 * @throws SQLException 
 	 */
-	public ISqlStruct visit(ParseTree tree,Parser parser);	
+	public ISqlStruct visit(ParseTree tree,Parser parser) throws SQLException;	
 }
