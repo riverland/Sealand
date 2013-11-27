@@ -11,7 +11,18 @@ package org.river.sealand.schedule.node;
 public class ScanNode extends ScheduleNode {
 	private String sql;
 	
+	private boolean isGlobal;
 	
+	public boolean isGlobal() {
+		return isGlobal;
+	}
+
+
+	public void setGlobal(boolean isGlobal) {
+		this.isGlobal = isGlobal;
+	}
+
+
 	public String getSql() {
 		return sql;
 	}

@@ -1,8 +1,7 @@
 //package org.river.sealand.sql.parser;
 //
 //import org.river.sealand.sql.syntax.SqlLexer;
-//import org.river.sealand.sql.util.SQLException;
-//
+//import org.river.sealand.utils.SQLException/
 //import junit.framework.TestCase;
 ///**
 // * <p>

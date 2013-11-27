@@ -7,11 +7,11 @@ import org.antlr.v4.runtime.tree.RuleNode;
 import org.antlr.v4.runtime.tree.TerminalNode;
 import org.river.sealand.sql.ast.ASTStructUtils;
 import org.river.sealand.sql.ast.Keyword;
-import org.river.sealand.sql.ast.SqlBoolExpr;
-import org.river.sealand.sql.ast.SqlExpr;
-import org.river.sealand.sql.ast.SqlExpr.Type;
-import org.river.sealand.sql.ast.SqlOperator;
-import org.river.sealand.sql.util.SQLException;
+import org.river.sealand.sql.ast.SQLBoolExpr;
+import org.river.sealand.sql.ast.SQLExpr;
+import org.river.sealand.sql.ast.SQLExpr.Type;
+import org.river.sealand.sql.ast.SQLOperator;
+import org.river.sealand.utils.SQLException;
 
 /**
  * <p>
@@ -23,7 +23,7 @@ import org.river.sealand.sql.util.SQLException;
 public class AntlrCriteriaVisitor extends AntlrTreeVisitor {
 
 	@Override
-	protected SqlBoolExpr doVisit(ParseTree tree, Parser parser) throws SQLException {
+	protected SQLBoolExpr doVisit(ParseTree tree, Parser parser) throws SQLException {
 
 		ParseTree node = tree.getChild(0);
 		if (node instanceof TerminalNode) {
@@ -40,13 +40,13 @@ public class AntlrCriteriaVisitor extends AntlrTreeVisitor {
 		if (rule == Rule.CRITERIA) {
 			return this.visitGroup(tree, parser);
 		} else if (rule == Rule.EXPRESSION) {
-			return new SqlBoolExpr(this.visitOperate(tree, parser));
+			return new SQLBoolExpr(this.visitOperate(tree, parser));
 		} else if (rule == Rule.BETWEEN_EXPR) {
-			return new SqlBoolExpr(this.visitBetweenExpr(tree, parser));
+			return new SQLBoolExpr(this.visitBetweenExpr(tree, parser));
 		} else if (rule == Rule.IN_EXPR) {
-			return new SqlBoolExpr(this.visitInExpr(tree, parser));
+			return new SQLBoolExpr(this.visitInExpr(tree, parser));
 		} else if (rule == Rule.EXIST_EXPR) {
-			return new SqlBoolExpr(this.visitExistExpr(tree, parser));
+			return new SQLBoolExpr(this.visitExistExpr(tree, parser));
 		}
 
 		return null;
@@ -61,13 +61,13 @@ public class AntlrCriteriaVisitor extends AntlrTreeVisitor {
 	 * 
 	 * @return
 	 */
-	private SqlBoolExpr visitNotToken(ParseTree tree, Parser parser) throws SQLException {
+	private SQLBoolExpr visitNotToken(ParseTree tree, Parser parser) throws SQLException {
 
 		for (int i = 1; i < tree.getChildCount(); i++) {
 			ParseTree node = tree.getChild(i);
 			Rule rule = AntlrTreeUtils.getRule(node, parser);
 			if (rule == Rule.CRITERIA) {
-				return SqlBoolExpr.not(this.doVisit(node, parser));
+				return SQLBoolExpr.not(this.doVisit(node, parser));
 			}
 		}
 
@@ -83,15 +83,15 @@ public class AntlrCriteriaVisitor extends AntlrTreeVisitor {
 	 * 
 	 * @return
 	 */
-	private SqlBoolExpr visitGroup(ParseTree tree, Parser parser) throws SQLException {
-		SqlBoolExpr expr = this.doVisit(tree.getChild(0), parser);
+	private SQLBoolExpr visitGroup(ParseTree tree, Parser parser) throws SQLException {
+		SQLBoolExpr expr = this.doVisit(tree.getChild(0), parser);
 		for (int i = 1; i < tree.getChildCount(); i = +2) {
 			ParseTree op = tree.getChild(i);
 			ParseTree node = tree.getChild(i);
 			String operatorStr = ((TerminalNode) op).getSymbol().getText();
-			SqlBoolExpr nodeExpr = this.doVisit(node, parser);
+			SQLBoolExpr nodeExpr = this.doVisit(node, parser);
 
-			if (SqlOperator.AND.getValue().equals(operatorStr.toUpperCase())) {
+			if (SQLOperator.AND.getValue().equals(operatorStr.toUpperCase())) {
 				expr = expr.and(nodeExpr);
 			} else {
 				expr = expr.or(nodeExpr);
@@ -111,14 +111,14 @@ public class AntlrCriteriaVisitor extends AntlrTreeVisitor {
 	 * 
 	 * @return
 	 */
-	private SqlExpr visitBetweenExpr(ParseTree tree, Parser parser) throws SQLException {
-		SqlExpr between = new SqlExpr();
-		between.setOperator(SqlOperator.BETWEEN);
+	private SQLExpr visitBetweenExpr(ParseTree tree, Parser parser) throws SQLException {
+		SQLExpr between = new SQLExpr();
+		between.setOperator(SQLOperator.BETWEEN);
 		between.setType(Type.COMP);
 		IAntlrTreeVisitor visitor = ASTStructUtils.getVisitor(Rule.EXPRESSION);
-		SqlExpr columnExpr = (SqlExpr) visitor.visit(tree.getChild(0), parser);
-		SqlExpr firstVal = (SqlExpr) visitor.visit(tree.getChild(2), parser);
-		SqlExpr sencondVal = (SqlExpr) visitor.visit(tree.getChild(4), parser);
+		SQLExpr columnExpr = (SQLExpr) visitor.visit(tree.getChild(0), parser);
+		SQLExpr firstVal = (SQLExpr) visitor.visit(tree.getChild(2), parser);
+		SQLExpr sencondVal = (SQLExpr) visitor.visit(tree.getChild(4), parser);
 		between.getElements().add(columnExpr);
 		between.getElements().add(firstVal);
 		between.getElements().add(sencondVal);
@@ -134,7 +134,7 @@ public class AntlrCriteriaVisitor extends AntlrTreeVisitor {
 	 * 
 	 * @return
 	 */
-	private SqlExpr visitInExpr(ParseTree tree, Parser parser) throws SQLException {
+	private SQLExpr visitInExpr(ParseTree tree, Parser parser) throws SQLException {
 		boolean isInValues = false;
 		for (int i = 2; i < tree.getChildCount(); i++) {
 			ParseTree node = tree.getChild(i);
@@ -165,7 +165,7 @@ public class AntlrCriteriaVisitor extends AntlrTreeVisitor {
 	 * 
 	 * @return
 	 */
-	private SqlExpr visitInValues(ParseTree tree, Parser parser) throws SQLException {
+	private SQLExpr visitInValues(ParseTree tree, Parser parser) throws SQLException {
 		ParseTree valueList = null;
 		for (int i = 2; i < tree.getChildCount(); i++) {
 			ParseTree node = tree.getChild(i);
@@ -184,8 +184,8 @@ public class AntlrCriteriaVisitor extends AntlrTreeVisitor {
 			throw new SQLException("sql syntex error: value list expected after IN");
 		}
 
-		SqlExpr expr = new SqlExpr();
-		expr.setOperator(SqlOperator.IN);
+		SQLExpr expr = new SQLExpr();
+		expr.setOperator(SQLOperator.IN);
 		expr.setType(Type.COMP);
 		for (int i = 0; i < valueList.getChildCount(); i++) {
 			ParseTree tmp = valueList.getChild(i);
@@ -195,7 +195,7 @@ public class AntlrCriteriaVisitor extends AntlrTreeVisitor {
 
 			Rule rule = AntlrTreeUtils.getRule(tmp, parser);
 			if (rule == Rule.EXPRESSION) {
-				expr.getElements().add((SqlExpr) ASTStructUtils.getVisitor(Rule.EXPRESSION).visit(tmp, parser));
+				expr.getElements().add((SQLExpr) ASTStructUtils.getVisitor(Rule.EXPRESSION).visit(tmp, parser));
 			}
 		}
 
@@ -211,7 +211,7 @@ public class AntlrCriteriaVisitor extends AntlrTreeVisitor {
 	 * 
 	 * @return
 	 */
-	private SqlExpr visitInSubQuery(ParseTree tree, Parser parser) throws SQLException {
+	private SQLExpr visitInSubQuery(ParseTree tree, Parser parser) throws SQLException {
 		ParseTree subQuery = null;
 		for (int i = 2; i < tree.getChildCount(); i++) {
 			ParseTree node = tree.getChild(i);
@@ -230,8 +230,8 @@ public class AntlrCriteriaVisitor extends AntlrTreeVisitor {
 			throw new SQLException("sql syntex error: sub_select expected after IN");
 		}
 
-		SqlExpr expr = new SqlExpr();
-		expr.setOperator(SqlOperator.IN);
+		SQLExpr expr = new SQLExpr();
+		expr.setOperator(SQLOperator.IN);
 		expr.setType(Type.COMP);
 		expr.setValue(ASTStructUtils.getVisitor(Rule.SELECT_CLAUSE).visit(subQuery, parser));
 
@@ -247,7 +247,7 @@ public class AntlrCriteriaVisitor extends AntlrTreeVisitor {
 	 * 
 	 * @return
 	 */
-	private SqlExpr visitExistExpr(ParseTree tree, Parser parser) throws SQLException {
+	private SQLExpr visitExistExpr(ParseTree tree, Parser parser) throws SQLException {
 		ParseTree subQuery = null;
 		for (int i = 0; i < tree.getChildCount(); i++) {
 			ParseTree node = tree.getChild(i);
@@ -266,8 +266,8 @@ public class AntlrCriteriaVisitor extends AntlrTreeVisitor {
 			throw new SQLException("sql syntex error: sub_select expected after EXIST");
 		}
 
-		SqlExpr expr = new SqlExpr();
-		expr.setOperator(SqlOperator.EXIST);
+		SQLExpr expr = new SQLExpr();
+		expr.setOperator(SQLOperator.EXIST);
 		expr.setType(Type.COMP);
 		expr.setValue(ASTStructUtils.getVisitor(Rule.SELECT_CLAUSE).visit(subQuery, parser));
 
@@ -283,29 +283,29 @@ public class AntlrCriteriaVisitor extends AntlrTreeVisitor {
 	 * 
 	 * @return
 	 */
-	private SqlExpr visitOperate(ParseTree tree, Parser parser) throws SQLException {
-		SqlExpr left = (SqlExpr) ASTStructUtils.getVisitor(Rule.EXPRESSION).visit(tree.getChild(0), parser);
-		SqlExpr right = (SqlExpr) ASTStructUtils.getVisitor(Rule.EXPRESSION).visit(tree.getChild(2), parser);
+	private SQLExpr visitOperate(ParseTree tree, Parser parser) throws SQLException {
+		SQLExpr left = (SQLExpr) ASTStructUtils.getVisitor(Rule.EXPRESSION).visit(tree.getChild(0), parser);
+		SQLExpr right = (SQLExpr) ASTStructUtils.getVisitor(Rule.EXPRESSION).visit(tree.getChild(2), parser);
 		String operatorStr = ((TerminalNode) tree.getChild(1)).getText();
-		SqlExpr expr = new SqlExpr();
+		SQLExpr expr = new SQLExpr();
 		expr.getElements().add(left);
 		expr.getElements().add(right);
 		expr.setType(Type.COMP);
 
-		if (SqlOperator.EQ.getValue().equals(operatorStr)) {
-			expr.setOperator(SqlOperator.EQ);
-		} else if (SqlOperator.GT.getValue().equals(operatorStr)) {
-			expr.setOperator(SqlOperator.GT);
-		} else if (SqlOperator.LT.getValue().equals(operatorStr)) {
-			expr.setOperator(SqlOperator.LT);
-		} else if (SqlOperator.LE.getValue().equals(operatorStr)) {
-			expr.setOperator(SqlOperator.LE);
-		} else if (SqlOperator.GE.getValue().equals(operatorStr)) {
-			expr.setOperator(SqlOperator.GE);
-		} else if (SqlOperator.LIKE.getValue().equals(operatorStr)) {
-			expr.setOperator(SqlOperator.LIKE);
-		} else if (SqlOperator.NE.getValue().equals(operatorStr)) {
-			expr.setOperator(SqlOperator.NE);
+		if (SQLOperator.EQ.getValue().equals(operatorStr)) {
+			expr.setOperator(SQLOperator.EQ);
+		} else if (SQLOperator.GT.getValue().equals(operatorStr)) {
+			expr.setOperator(SQLOperator.GT);
+		} else if (SQLOperator.LT.getValue().equals(operatorStr)) {
+			expr.setOperator(SQLOperator.LT);
+		} else if (SQLOperator.LE.getValue().equals(operatorStr)) {
+			expr.setOperator(SQLOperator.LE);
+		} else if (SQLOperator.GE.getValue().equals(operatorStr)) {
+			expr.setOperator(SQLOperator.GE);
+		} else if (SQLOperator.LIKE.getValue().equals(operatorStr)) {
+			expr.setOperator(SQLOperator.LIKE);
+		} else if (SQLOperator.NE.getValue().equals(operatorStr)) {
+			expr.setOperator(SQLOperator.NE);
 		} else{
 			throw new SQLException("sql syntex error: > ,= ,< ,>= ,<= <> expected for criteria expression");
 		}

@@ -11,17 +11,17 @@ import org.antlr.v4.runtime.tree.TerminalNode;
 import org.river.sealand.sql.ast.ASTStructUtils;
 import org.river.sealand.sql.ast.ISqlStruct;
 import org.river.sealand.sql.ast.Keyword;
-import org.river.sealand.sql.ast.SqlBoolExpr;
-import org.river.sealand.sql.ast.SqlGroupBy;
-import org.river.sealand.sql.ast.SqlJoin;
-import org.river.sealand.sql.ast.SqlLimit;
-import org.river.sealand.sql.ast.SqlSelect;
-import org.river.sealand.sql.ast.SqlSort;
-import org.river.sealand.sql.ast.SqlTabReference;
-import org.river.sealand.sql.ast.SqlTabReference.RefType;
-import org.river.sealand.sql.ast.SqlTable;
-import org.river.sealand.sql.ast.SqlUnion;
-import org.river.sealand.sql.util.SQLException;
+import org.river.sealand.sql.ast.SQLBoolExpr;
+import org.river.sealand.sql.ast.SQLGroupBy;
+import org.river.sealand.sql.ast.SQLJoin;
+import org.river.sealand.sql.ast.SQLLimit;
+import org.river.sealand.sql.ast.SQLSelect;
+import org.river.sealand.sql.ast.SQLSort;
+import org.river.sealand.sql.ast.SQLTabReference;
+import org.river.sealand.sql.ast.SQLTabReference.RefType;
+import org.river.sealand.sql.ast.SQLTable;
+import org.river.sealand.sql.ast.SQLUnion;
+import org.river.sealand.utils.SQLException;
 
 /**
  * <p>
@@ -58,16 +58,16 @@ public class AntlrSelectVisitor extends AntlrTreeVisitor {
 		ISqlStruct stmt = null;
 		int len = tree.getChildCount();
 		if (len > 1) {
-			SqlUnion union = new SqlUnion();
+			SQLUnion union = new SQLUnion();
 
 			ParseTree firstTree = tree.getChild(0);
-			SqlSelect firstSel = this.visitSelect(firstTree, parser);
+			SQLSelect firstSel = this.visitSelect(firstTree, parser);
 			union.addSelect(firstSel);
 
 			for (int i = 1; i < len; i = +2) {
 				Token unionToken = ((TerminalNode) (tree.getChild(i))).getSymbol();
 				ParseTree selNode = tree.getChild(i + 1);
-				SqlSelect tmpSel = this.visitSelect(selNode, parser);
+				SQLSelect tmpSel = this.visitSelect(selNode, parser);
 				String tokenStr = unionToken.getText();
 				if (tokenStr != null && tokenStr.matches(Keyword.UNION_ALL_PATTERN)) {
 					tmpSel.setUnionAll(true);
@@ -91,8 +91,8 @@ public class AntlrSelectVisitor extends AntlrTreeVisitor {
 	 * 
 	 * @return
 	 */
-	private SqlSelect visitSelect(ParseTree tree, Parser parser) throws SQLException {
-		SqlSelect select = new SqlSelect();
+	private SQLSelect visitSelect(ParseTree tree, Parser parser) throws SQLException {
+		SQLSelect select = new SQLSelect();
 		for (int i = 0; i < tree.getChildCount(); i++) {
 			ParseTree tmp = tree.getChild(i);
 
@@ -173,8 +173,8 @@ public class AntlrSelectVisitor extends AntlrTreeVisitor {
 	 * 
 	 * @return
 	 */
-	private List<SqlTabReference> visitTableRefs(ParseTree tree, Parser parser) throws SQLException {
-		List<SqlTabReference> refs = new ArrayList<SqlTabReference>();
+	private List<SQLTabReference> visitTableRefs(ParseTree tree, Parser parser) throws SQLException {
+		List<SQLTabReference> refs = new ArrayList<SQLTabReference>();
 
 		for (int i = 0; i < tree.getChildCount(); i++) {
 			ParseTree node = tree.getChild(i);
@@ -196,7 +196,7 @@ public class AntlrSelectVisitor extends AntlrTreeVisitor {
 	 * 
 	 * @return
 	 */
-	private SqlTabReference visitTableAtom(ParseTree tree, Parser parser) throws SQLException {
+	private SQLTabReference visitTableAtom(ParseTree tree, Parser parser) throws SQLException {
 
 		ParseTree node = tree.getChild(0);
 		if (!(node instanceof RuleNode)) {
@@ -224,11 +224,11 @@ public class AntlrSelectVisitor extends AntlrTreeVisitor {
 	 * 
 	 * @return
 	 */
-	private SqlTabReference visitTableAtom4Table(ParseTree tree, Parser parser) {
-		SqlTabReference ref = new SqlTabReference();
+	private SQLTabReference visitTableAtom4Table(ParseTree tree, Parser parser) {
+		SQLTabReference ref = new SQLTabReference();
 
 		ParseTree child0 = tree.getChild(0);
-		SqlTable tab = new SqlTable();
+		SQLTable tab = new SQLTable();
 		tab.setTableName(this.visitSqlId(child0, parser));
 		ref.setRef(tab);
 		ref.setRefType(RefType.TABLE);
@@ -254,10 +254,10 @@ public class AntlrSelectVisitor extends AntlrTreeVisitor {
 	 * 
 	 * @return
 	 */
-	private SqlTabReference visitTableAtom4Join(ParseTree tree, Parser parser) throws SQLException {
-		SqlTabReference ref = new SqlTabReference();
+	private SQLTabReference visitTableAtom4Join(ParseTree tree, Parser parser) throws SQLException {
+		SQLTabReference ref = new SQLTabReference();
 		ref.setRefType(RefType.JOIN);
-		SqlJoin join = new SqlJoin();
+		SQLJoin join = new SQLJoin();
 		ref.setRef(join);
 		join.setLeft(this.visitTableAtom(tree.getChild(0), parser));
 		join.setOn(this.visitWhere(tree, parser));
@@ -274,8 +274,8 @@ public class AntlrSelectVisitor extends AntlrTreeVisitor {
 	 * 
 	 * @return
 	 */
-	private SqlTabReference visitTableAtom4SubQuery(ParseTree tree, Parser parser) throws SQLException {
-		SqlTabReference ref = new SqlTabReference();
+	private SQLTabReference visitTableAtom4SubQuery(ParseTree tree, Parser parser) throws SQLException {
+		SQLTabReference ref = new SQLTabReference();
 		ref.setRefType(RefType.SUB_SELECT);
 		ref.setRef(this.visit(tree.getChild(0), parser));
 
@@ -299,7 +299,7 @@ public class AntlrSelectVisitor extends AntlrTreeVisitor {
 	 * 
 	 * @return
 	 */
-	private SqlBoolExpr visitWhere(ParseTree tree, Parser parser) throws SQLException {
+	private SQLBoolExpr visitWhere(ParseTree tree, Parser parser) throws SQLException {
 		ParseTree criteria = null;
 		for (int i = 0; i < tree.getChildCount(); i++) {
 			ParseTree node=tree.getChild(i);
@@ -313,7 +313,7 @@ public class AntlrSelectVisitor extends AntlrTreeVisitor {
 				break;
 			}
 		}
-		return (SqlBoolExpr) ASTStructUtils.getVisitor(Rule.CRITERIA).visit(criteria, parser);
+		return (SQLBoolExpr) ASTStructUtils.getVisitor(Rule.CRITERIA).visit(criteria, parser);
 	}
 
 	/*
@@ -325,9 +325,9 @@ public class AntlrSelectVisitor extends AntlrTreeVisitor {
 	 * 
 	 * @return
 	 */
-	private SqlGroupBy visitGroupBy(ParseTree tree, Parser parser) throws SQLException {
+	private SQLGroupBy visitGroupBy(ParseTree tree, Parser parser) throws SQLException {
 		String fields[] = new String[tree.getChildCount()];
-		SqlGroupBy groupBy = new SqlGroupBy(fields);
+		SQLGroupBy groupBy = new SQLGroupBy(fields);
 		for (int i = 0; i < tree.getChildCount(); i++) {
 			ParseTree node = tree.getChild(i);
 			if (node instanceof RuleNode) {
@@ -346,8 +346,8 @@ public class AntlrSelectVisitor extends AntlrTreeVisitor {
 	 * 
 	 * @return
 	 */
-	private SqlBoolExpr visitHaving(ParseTree tree, Parser parser) throws SQLException {
-		return (SqlBoolExpr) ASTStructUtils.getVisitor(Rule.WHERE_CLAUSE).visit(tree, parser);
+	private SQLBoolExpr visitHaving(ParseTree tree, Parser parser) throws SQLException {
+		return (SQLBoolExpr) ASTStructUtils.getVisitor(Rule.WHERE_CLAUSE).visit(tree, parser);
 	}
 
 	/*
@@ -359,8 +359,8 @@ public class AntlrSelectVisitor extends AntlrTreeVisitor {
 	 * 
 	 * @return
 	 */
-	private SqlSort visitOrderBy(ParseTree tree, Parser parser) throws SQLException {
-		SqlSort sort = new SqlSort();
+	private SQLSort visitOrderBy(ParseTree tree, Parser parser) throws SQLException {
+		SQLSort sort = new SQLSort();
 		for (int i = 0; i < tree.getChildCount(); i++) {
 			ParseTree node = tree.getChild(i);
 			String fieldName = ASTStructUtils.getVisitor(Rule.EXPRESSION).visit(node.getChild(0), parser).toString();
@@ -387,7 +387,7 @@ public class AntlrSelectVisitor extends AntlrTreeVisitor {
 	 * 
 	 * @return
 	 */
-	private SqlLimit visitLimit(ParseTree tree, Parser parser) throws SQLException {
+	private SQLLimit visitLimit(ParseTree tree, Parser parser) throws SQLException {
 		int row = 0;
 		int offset = 0;
 		int count = tree.getChildCount();
@@ -397,7 +397,7 @@ public class AntlrSelectVisitor extends AntlrTreeVisitor {
 			row = Integer.valueOf(ASTStructUtils.getVisitor(Rule.EXPRESSION).visit(tree.getChild(1), parser).toString().trim());
 			offset = Integer.valueOf(ASTStructUtils.getVisitor(Rule.EXPRESSION).visit(tree.getChild(3), parser).toString().trim());
 		}
-		SqlLimit limit = new SqlLimit(row, offset);
+		SQLLimit limit = new SQLLimit(row, offset);
 		return limit;
 	}
 

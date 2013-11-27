@@ -13,7 +13,7 @@ import java.util.Set;
 public abstract class ScheduleNode {
 
 	/** 数据源节点 */
-	private Set<ScheduleNode> srcNodes;
+	private List<ScheduleNode> srcNodes;
 
 	/** 目标节点 */
 	private ScheduleNode destNode;
@@ -56,11 +56,11 @@ public abstract class ScheduleNode {
 		this.isLeaf = isLeaf;
 	}
 
-	public Set<ScheduleNode> getSrcNodes() {
+	public List<ScheduleNode> getSrcNodes() {
 		return srcNodes;
 	}
 
-	public void setSrcNodes(Set<ScheduleNode> srcNodes) {
+	public void setSrcNodes(List<ScheduleNode> srcNodes) {
 		this.srcNodes = srcNodes;
 	}
 

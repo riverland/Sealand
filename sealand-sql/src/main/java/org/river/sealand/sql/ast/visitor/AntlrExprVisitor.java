@@ -4,10 +4,10 @@ import org.antlr.v4.runtime.Parser;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.TerminalNode;
 import org.river.sealand.sql.ast.Keyword;
-import org.river.sealand.sql.ast.SqlCalcExpr;
-import org.river.sealand.sql.ast.SqlExpr.Type;
-import org.river.sealand.sql.ast.SqlOperator;
-import org.river.sealand.sql.util.SQLException;
+import org.river.sealand.sql.ast.SQLCalcExpr;
+import org.river.sealand.sql.ast.SQLExpr.Type;
+import org.river.sealand.sql.ast.SQLOperator;
+import org.river.sealand.utils.SQLException;
 
 /**
  * <p>
@@ -19,7 +19,7 @@ import org.river.sealand.sql.util.SQLException;
 public class AntlrExprVisitor extends AntlrTreeVisitor {
 
 	@Override
-	protected SqlCalcExpr doVisit(ParseTree tree, Parser parser) throws SQLException {
+	protected SQLCalcExpr doVisit(ParseTree tree, Parser parser) throws SQLException {
 
 		int firstIndex = 0;
 		ParseTree firstExpr = tree.getChild(firstIndex);
@@ -42,21 +42,21 @@ public class AntlrExprVisitor extends AntlrTreeVisitor {
 			return this.visitSqlIdExpr(firstExpr, parser);
 		}
 
-		SqlCalcExpr calc = (SqlCalcExpr) this.visit(firstExpr, parser);
+		SQLCalcExpr calc = (SQLCalcExpr) this.visit(firstExpr, parser);
 		for (int i = firstIndex+1; i < tree.getChildCount(); i += 2) {
 			ParseTree node = tree.getChild(i);
 			String operator = ((TerminalNode) node).getText();
-			SqlCalcExpr tmp = (SqlCalcExpr) this.visit(tree.getChild(i + 1), parser);
-			if (SqlOperator.PLUS.getValue().equals(operator)) {
-				calc = calc.operate(SqlOperator.PLUS, tmp);
-			} else if (SqlOperator.MINUS.getValue().equals(operator)) {
-				calc = calc.operate(SqlOperator.MINUS, tmp);
-			} else if (SqlOperator.MULTI.getValue().equals(operator)) {
-				calc = calc.operate(SqlOperator.MULTI, tmp);
-			} else if (SqlOperator.DIV.getValue().equals(operator)) {
-				calc = calc.operate(SqlOperator.DIV, tmp);
-			} else if (SqlOperator.MOD.getValue().equals(operator)) {
-				calc = calc.operate(SqlOperator.MOD, tmp);
+			SQLCalcExpr tmp = (SQLCalcExpr) this.visit(tree.getChild(i + 1), parser);
+			if (SQLOperator.PLUS.getValue().equals(operator)) {
+				calc = calc.operate(SQLOperator.PLUS, tmp);
+			} else if (SQLOperator.MINUS.getValue().equals(operator)) {
+				calc = calc.operate(SQLOperator.MINUS, tmp);
+			} else if (SQLOperator.MULTI.getValue().equals(operator)) {
+				calc = calc.operate(SQLOperator.MULTI, tmp);
+			} else if (SQLOperator.DIV.getValue().equals(operator)) {
+				calc = calc.operate(SQLOperator.DIV, tmp);
+			} else if (SQLOperator.MOD.getValue().equals(operator)) {
+				calc = calc.operate(SQLOperator.MOD, tmp);
 			}
 		}
 
@@ -72,7 +72,7 @@ public class AntlrExprVisitor extends AntlrTreeVisitor {
 	 * 
 	 * @return
 	 */
-	private SqlCalcExpr visitNumber(ParseTree tree, Parser parser) {
+	private SQLCalcExpr visitNumber(ParseTree tree, Parser parser) {
 		StringBuffer sb = new StringBuffer();
 		for (int i = 0; i < tree.getChildCount(); i++) {
 			ParseTree node = tree.getChild(i);
@@ -81,7 +81,7 @@ public class AntlrExprVisitor extends AntlrTreeVisitor {
 		}
 
 		String numberStr = sb.toString();
-		SqlCalcExpr expr = new SqlCalcExpr();
+		SQLCalcExpr expr = new SQLCalcExpr();
 		expr.setType(Type.VALUE);
 		if (numberStr.indexOf(".") > 0) {
 			expr.setValue(Double.valueOf(numberStr));
@@ -101,7 +101,7 @@ public class AntlrExprVisitor extends AntlrTreeVisitor {
 	 * 
 	 * @return
 	 */
-	private SqlCalcExpr visitString(ParseTree tree, Parser parser) {
+	private SQLCalcExpr visitString(ParseTree tree, Parser parser) {
 		StringBuffer sb = new StringBuffer();
 		for (int i = 0; i < tree.getChildCount(); i++) {
 			ParseTree node = tree.getChild(i);
@@ -110,7 +110,7 @@ public class AntlrExprVisitor extends AntlrTreeVisitor {
 		}
 
 		String numberStr = sb.toString();
-		SqlCalcExpr expr = new SqlCalcExpr();
+		SQLCalcExpr expr = new SQLCalcExpr();
 		expr.setType(Type.VALUE);
 		expr.setValue(numberStr);
 
@@ -126,7 +126,7 @@ public class AntlrExprVisitor extends AntlrTreeVisitor {
 	 * 
 	 * @return
 	 */
-	private SqlCalcExpr visitSqlIdExpr(ParseTree tree, Parser parser) {
+	private SQLCalcExpr visitSqlIdExpr(ParseTree tree, Parser parser) {
 		StringBuffer sb = new StringBuffer();
 		for (int i = 0; i < tree.getChildCount(); i++) {
 			ParseTree node = tree.getChild(i);
@@ -135,7 +135,7 @@ public class AntlrExprVisitor extends AntlrTreeVisitor {
 		}
 
 		String numberStr = sb.toString();
-		SqlCalcExpr expr = new SqlCalcExpr();
+		SQLCalcExpr expr = new SQLCalcExpr();
 		expr.setType(Type.VARIABLE);
 		expr.setValue(numberStr);
 

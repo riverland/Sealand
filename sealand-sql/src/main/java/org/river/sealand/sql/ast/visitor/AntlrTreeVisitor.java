@@ -4,7 +4,8 @@ import org.antlr.v4.runtime.Parser;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.TerminalNode;
 import org.river.sealand.sql.ast.ISqlStruct;
-import org.river.sealand.sql.util.SQLException;
+import org.river.sealand.utils.SQLException;
+
 /**
  * <p>
  * Antlr解析出的语法树访问者抽象类

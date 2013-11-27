@@ -9,13 +9,23 @@ import java.util.List;
  * @since  Nov 27, 2013
  */
 public class JoinNode extends ScheduleNode{
-	private List<String> on;
+	private String on;
+	
+	private JoinType joinType; 
 
-	public List<String> getOn() {
+	public JoinType getJoinType() {
+		return joinType;
+	}
+
+	public void setJoinType(JoinType joinType) {
+		this.joinType = joinType;
+	}
+
+	public String getOn() {
 		return on;
 	}
 
-	public void setOn(List<String> on) {
+	public void setOn(String on) {
 		this.on = on;
 	}
 
@@ -24,5 +34,7 @@ public class JoinNode extends ScheduleNode{
 		return NodeType.JOIN;
 	}
 	
-	
+	public static enum JoinType{
+		INNER, LEFT, RIGHT,CROSS;
+	}
 }
