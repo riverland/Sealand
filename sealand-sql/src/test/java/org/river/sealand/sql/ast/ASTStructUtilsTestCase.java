@@ -4,7 +4,7 @@ import java.io.IOException;
 
 import junit.framework.TestCase;
 
-import org.river.sealand.sql.dialect.DBType;
+import org.river.sealand.utils.DBType;
 import org.river.sealand.sql.util.SQLException;
 
 /**

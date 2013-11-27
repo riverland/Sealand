@@ -15,7 +15,7 @@ import org.river.sealand.sql.ast.visitor.AntlrExprVisitor;
 import org.river.sealand.sql.ast.visitor.AntlrSelectVisitor;
 import org.river.sealand.sql.ast.visitor.IAntlrTreeVisitor;
 import org.river.sealand.sql.ast.visitor.Rule;
-import org.river.sealand.sql.dialect.DBType;
+import org.river.sealand.utils.DBType;
 import org.river.sealand.sql.syntax.SQLCommonLexer;
 import org.river.sealand.sql.syntax.SQLCommonParser;
 import org.river.sealand.sql.util.SQLException;
