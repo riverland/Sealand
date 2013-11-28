@@ -32,6 +32,6 @@ public class SQLException extends Exception {
 
 
 	public static enum Type{
-		PARSE;
+		PARSE,EXECUTE;
 	}
 }
