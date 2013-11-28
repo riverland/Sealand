@@ -1,4 +1,4 @@
-package org.river.sealand.meta;
+package org.river.sealand.metainfo;
 /**
  * <p>
  * 分片类型

@@ -1,4 +1,4 @@
-package org.river.sealand.meta;
+package org.river.sealand.metainfo;
 
 import org.river.sealand.sql.ast.ISqlStruct;
 

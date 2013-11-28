@@ -9,9 +9,9 @@
 		<version>1.0-SNAPSHOT</version>
 	</parent>
 	<groupId>org.river.sealand</groupId>
-	<artifactId>sealand-schedule</artifactId>
+	<artifactId>sealand-metainfo</artifactId>
 	<version>1.0-SNAPSHOT</version>
-	<name>sealand-schedule</name>
+	<name>sealand-metainfo</name>
 	<url>http://maven.apache.org</url>
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -19,24 +19,10 @@
 	<dependencies>
 		<dependency>
 			<groupId>org.river.sealand</groupId>
-			<artifactId>sealand-metainfo</artifactId>
-			<version>1.0-SNAPSHOT</version>
-		</dependency>
-		<dependency>
-			<groupId>org.river.sealand</groupId>
-			<artifactId>sealand-utils</artifactId>
-			<version>1.0-SNAPSHOT</version>
-		</dependency>
-		<dependency>
-			<groupId>org.river.sealand</groupId>
 			<artifactId>sealand-sql</artifactId>
 			<version>1.0-SNAPSHOT</version>
 		</dependency>
-		<dependency>
-			<groupId>org.slf4j</groupId>
-			<artifactId>slf4j-api</artifactId>
-			<version>1.7.5</version>
-		</dependency>
+
 		<dependency>
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>

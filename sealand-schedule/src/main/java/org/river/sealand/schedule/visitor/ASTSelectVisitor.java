@@ -3,7 +3,7 @@ package org.river.sealand.schedule.visitor;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.river.sealand.meta.IMetaDataService;
+import org.river.sealand.metainfo.IMetaDataService;
 import org.river.sealand.schedule.node.AggregateNode;
 import org.river.sealand.schedule.node.HavingNode;
 import org.river.sealand.schedule.node.JoinNode;
