@@ -1,5 +1,7 @@
 package org.river.sealand.meta;
 
+import java.util.List;
+
 /**
  * <p>
  * 元数据服务
@@ -15,4 +17,14 @@ public interface IMetaDataService {
 	 * @return
 	 */
 	public boolean isGlobal(String tabName);
+	
+	/**
+	 * <p>
+	 * 获取表列名
+	 * @param tabName
+	 * @return
+	 */
+	public List<String> getColumnNames(String tabName);
+	
+	
 }

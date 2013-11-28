@@ -1,9 +1,7 @@
 package org.river.sealand.schedule.visitor;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 
 import org.river.sealand.meta.IMetaDataService;
 import org.river.sealand.schedule.node.AggregateNode;
@@ -25,8 +23,8 @@ import org.river.sealand.sql.ast.SQLLimit;
 import org.river.sealand.sql.ast.SQLSelect;
 import org.river.sealand.sql.ast.SQLSort;
 import org.river.sealand.sql.ast.SQLTabReference;
-import org.river.sealand.sql.ast.SQLTabReference.RefType;
 import org.river.sealand.sql.ast.SQLTable;
+import org.river.sealand.sql.util.SQLUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -180,14 +178,59 @@ public class ASTSelectVisitor extends ASTVisitor {
 	 */
 	private ScheduleNode visitTabRef(SQLTabReference tabRef) {
 		ISqlStruct ref = tabRef.getRef();
+		ScheduleNode node = null;
 		switch (tabRef.getRefType()) {
-		case SUB_SELECT:
-			return this.visit(ref);
-		case JOIN:
-			return this.visitOnJoin((SQLJoin) ref);
-		default:
-			return null;
+		case SUB_SELECT: {
+			SQLSelect select = (SQLSelect) ref;
+			SQLBoolExpr criteria = tabRef.getCriteria();
+			if (criteria != null) {
+				select.getCriteria().and(criteria);
+			}
+			node = this.visit(select);
+			break;
 		}
+		case JOIN: {
+			SQLJoin join = (SQLJoin) ref;
+			SQLBoolExpr criteria = tabRef.getCriteria();
+			if (criteria != null) {
+				join.getOn().and(criteria);
+			}
+			node = this.visitOnJoin(join);
+			break;
+		}
+		case TABLE: {
+			node = this.visitTable(tabRef);
+		}
+		}
+
+		node.setAlias(tabRef.getAlias());
+
+		return node;
+	}
+
+	/*
+	 * 表对象查询
+	 * 
+	 * @param tabRef
+	 * 
+	 * @return
+	 */
+	private ScheduleNode visitTable(SQLTabReference tabRef) {
+		StringBuffer sb = new StringBuffer("SELECT ");
+		sb.append(SQLUtils.buildSelectList(tabRef.getFields())).append(" ");
+		sb.append("FROM ");
+		String tableName = ((SQLTable) tabRef.getRef()).getTableName();
+		sb.append(tableName).append(" ");
+
+		SQLBoolExpr expr = tabRef.getCriteria();
+		if (expr != null) {
+			sb.append(expr.toString());
+		}
+		ScanNode node = new ScanNode();
+		node.setSql(sb.toString());
+		node.setGlobal(this.metaDataService.isGlobal(tableName));
+
+		return node;
 	}
 
 	/*
@@ -239,155 +282,21 @@ public class ASTSelectVisitor extends ASTVisitor {
 	private ScheduleNode visitCrossJoin(ISqlStruct ast) {
 		SQLSelect select = (SQLSelect) ast;
 		SQLBoolExpr where = select.getCriteria();
-		if (where == null) {
-			return this.visitFreeCrossJoin(ast);
-		}
-
 		where = ASTStructUtils.beatOrOut(where);
 		List<SQLTabReference> fromTbls = select.getFromTbls();
-		List<SQLTabReference> globals = this.splitGlobal(fromTbls);
-		
+
+		JoinNode node = new JoinNode();
+		node.setJoinType(JoinType.CROSS);
+
 		for (SQLTabReference tmp : fromTbls) {
-			
-		}
-		
-		return null;
-	}
-	
-	/*
-	 * 把 SQLTabReference 列表转换为以alias为key的map
-	 * @param refs
-	 * @return
-	 */
-	private Map<String,SQLTabReference> toAliasMap(List<SQLTabReference> refs){
-		return null;
-	}
-
-	/*
-	 * 访问cross join,构建Join节点,该连接操作没有过滤条件
-	 * 
-	 * @param ast
-	 * 
-	 * @return
-	 */
-	private ScheduleNode visitFreeCrossJoin(ISqlStruct ast) {
-		SQLSelect select = (SQLSelect) ast;
-		SQLBoolExpr where = select.getCriteria();
-		where = ASTStructUtils.beatOrOut(where);
-
-		List<SQLTabReference> fromTbls = select.getFromTbls();
-		List<SQLTabReference> globals = this.splitGlobal(fromTbls);
-		ScheduleNode globalNode = this.scanNodeFromGlobals(globals, ast);
-		JoinNode joinNode = new JoinNode();
-		joinNode.getSrcNodes().add(globalNode);
-		joinNode.setJoinType(JoinType.CROSS);
-		globalNode.setDestNode(joinNode);
-
-		final int size = fromTbls.size();
-		for (int i = 0; i < size; i++) {
-			SQLTabReference tmp = fromTbls.get(i);
-			ScheduleNode node = this.visitTabRef(tmp);
-			joinNode.getSrcNodes().add(node);
-			node.setDestNode(joinNode);
-
-			if (i + 1 < size) {
-				JoinNode newJoin = new JoinNode();
-				newJoin.setJoinType(JoinType.CROSS);
-				newJoin.getSrcNodes().add(joinNode);
-				joinNode.setDestNode(newJoin);
-				joinNode = newJoin;
-			}
-		}
-		return joinNode;
-	}
-
-	/*
-	 * 分离出全局表
-	 * 
-	 * @param ref
-	 * 
-	 * @return
-	 */
-	private List<SQLTabReference> splitGlobal(List<SQLTabReference> refs) {
-		List<SQLTabReference> globals = new ArrayList<SQLTabReference>();
-		Iterator<SQLTabReference> iter = refs.iterator();
-		while (iter.hasNext()) {
-			SQLTabReference tmp = iter.next();
-			if (this.isGlobal(tmp)) {
-				globals.add(tmp);
-				iter.remove();
-			}
-		}
-		return globals;
-	}
-
-	/*
-	 * 通过 global表创建scanNode
-	 * 
-	 * @param globals
-	 * 
-	 * @return
-	 */
-	private ScheduleNode scanNodeFromGlobals(List<SQLTabReference> globals, ISqlStruct ast) {
-		ScanNode scanNode = new ScanNode();
-		StringBuffer sb = new StringBuffer();
-		sb.append("select ");
-		List<String> fields = this.buildSelectFields(globals, ast);
-
-		boolean flag = true;
-		for (String tmp : fields) {
-			if (flag) {
-				sb.append(tmp);
-				flag = false;
-			} else {
-				sb.append(",").append(tmp);
-			}
-		}
-		
-		sb.append(" from ");
-		
-		flag=true;
-		for (SQLTabReference tmp : globals) {
-			SQLTable tab=(SQLTable) tmp.getRef();
-			if (flag) {
-				sb.append(tab.getTableName());
-				flag = false;
-			} else {
-				sb.append(",").append(tab.getTableName());
-			}
-			
-			sb.append(" ").append(tmp.getAlias());
-		}
-		scanNode.setFields(fields);
-		scanNode.setSql(sb.toString());
-		return scanNode;
-	}
-
-	/*
-	 * 通过 global表创建scanNode
-	 * 
-	 * @param globals
-	 * 
-	 * @return
-	 */
-	private List<String> buildSelectFields(List<SQLTabReference> refs, ISqlStruct ast) {
-		return null;
-	}
-
-	/*
-	 * 判断是否为全局表
-	 * 
-	 * @param tabRef
-	 * 
-	 * @return
-	 */
-	private boolean isGlobal(SQLTabReference tabRef) {
-		if (tabRef.getRefType() != RefType.TABLE) {
-			return false;
+			ScheduleNode childNode = this.visitTabRef(tmp);
+			node.getSrcNodes().add(childNode);
+			childNode.setDestNode(node);
 		}
 
-		SQLTable tab = (SQLTable) tabRef.getRef();
-		return this.metaDataService.isGlobal(tab.getTableName());
+		node.setOn(where.toString());
+
+		return node;
 	}
 
 	/*

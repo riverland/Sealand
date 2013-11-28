@@ -1,23 +1,48 @@
 package org.river.sealand.sql.ast;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * <p>
  * 对应表，视图，子查寻，JOIN(left,right,inner)
+ * 
  * @author river
- * @since  Nov 23, 2013
+ * @since Nov 23, 2013
  */
 public class SQLTabReference implements ISqlStruct {
-	
-	/**引用*/
+
+	/** 选择列表 */
+	private List<String> fields = new ArrayList<String>();
+
+	/** 引用 */
 	private ISqlStruct ref;
-	
-	/**别名*/
+
+	/** 别名 */
 	private String alias;
-	
-	/**引用类型*/
+
+	/** 引用类型 */
 	private RefType refType;
-	
-	
+
+	/** 过滤条件 */
+	private SQLBoolExpr criteria;
+
+	public List<String> getFields() {
+		return fields;
+	}
+
+	public void setFields(List<String> fields) {
+		this.fields = fields;
+	}
+
+	public SQLBoolExpr getCriteria() {
+		return criteria;
+	}
+
+	public void setCriteria(SQLBoolExpr criteria) {
+		this.criteria = criteria;
+	}
+
 	public ISqlStruct getRef() {
 		return ref;
 	}
@@ -47,7 +72,7 @@ public class SQLTabReference implements ISqlStruct {
 		return null;
 	}
 
-	public static enum RefType{
-		TABLE,SUB_SELECT,JOIN;
+	public static enum RefType {
+		TABLE, SUB_SELECT, JOIN;
 	}
 }

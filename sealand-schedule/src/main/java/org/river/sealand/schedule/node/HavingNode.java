@@ -1,6 +1,5 @@
 package org.river.sealand.schedule.node;
 
-import java.util.List;
 
 /**
  * <p>

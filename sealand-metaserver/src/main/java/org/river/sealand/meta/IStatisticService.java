@@ -17,4 +17,6 @@ public interface IStatisticService {
 	 * @return
 	 */
 	public int calcCost(ISqlStruct sql);
+	
+	
 }
