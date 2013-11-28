@@ -30,6 +30,7 @@ public class SQLBoolExpr extends SQLExpr {
 		SQLBoolExpr not = new SQLBoolExpr();
 		not.elements = new ArrayList<SQLExpr>();
 		not.elements.add(this);
+		this.setParent(not);
 		not.operator = SQLOperator.NOT;
 		return not;
 	}
@@ -46,6 +47,7 @@ public class SQLBoolExpr extends SQLExpr {
 		not.elements = new ArrayList<SQLExpr>();
 		not.elements.add(expr);
 		not.operator = SQLOperator.NOT;
+		expr.setParent(not);
 		return not;
 	}
 
@@ -59,6 +61,7 @@ public class SQLBoolExpr extends SQLExpr {
 	public SQLBoolExpr and(SQLExpr expr) {
 		if (this.operator == SQLOperator.AND) {
 			this.elements.add(expr);
+			expr.setParent(this);
 			return this;
 		}
 
@@ -67,7 +70,8 @@ public class SQLBoolExpr extends SQLExpr {
 		and.elements.add(this);
 		and.elements.add(expr);
 		and.operator = SQLOperator.AND;
-
+		expr.setParent(and);
+		this.setParent(and);
 		return and;
 	}
 	
@@ -83,6 +87,7 @@ public class SQLBoolExpr extends SQLExpr {
 
 		if (this.operator == SQLOperator.OR) {
 			this.elements.add(expr);
+			expr.setParent(this);
 			return this;
 		}
 
@@ -91,7 +96,9 @@ public class SQLBoolExpr extends SQLExpr {
 		or.elements.add(this);
 		or.elements.add(expr);
 		or.operator = SQLOperator.OR;
-
+		expr.setParent(or);
+		this.setParent(or);
+		
 		return or;
 	}
 

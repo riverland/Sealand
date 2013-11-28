@@ -7,5 +7,5 @@ package org.river.sealand.meta;
  * @since  Nov 27, 2013
  */
 public class MetaDataUtils {
-
+	
 }

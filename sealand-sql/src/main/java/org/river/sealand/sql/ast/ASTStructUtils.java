@@ -65,6 +65,16 @@ public class ASTStructUtils {
 		}
 		return expr;
 	}
+	
+	/**
+	 * <p>
+	 * 把所有or关系都重构至最外层
+	 * @param expr
+	 * @return
+	 */
+	public static SQLBoolExpr beatOrOut(SQLBoolExpr expr){
+		return null;
+	}
 
 	public static IAntlrTreeVisitor getVisitor(Rule rule) {
 		return visitors.get(rule);

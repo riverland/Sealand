@@ -100,6 +100,6 @@ public abstract class ScheduleNode {
 	 * @since Nov 27, 2013
 	 */
 	public static enum NodeType {
-		JOIN, SORT, AGGREGATE, LIMIT, HAVING, SCAN;
+		OR,JOIN, SORT, AGGREGATE, LIMIT, HAVING, SCAN;
 	}
 }

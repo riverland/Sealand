@@ -2,8 +2,16 @@ package org.river.sealand.sql.ast;
 
 import java.util.ArrayList;
 import java.util.List;
-
+/**
+ * <p>
+ * sql表达式
+ * @author river
+ * @since  Nov 27, 2013
+ */
 public class SQLExpr implements ISqlStruct {
+	
+	/**上一级表达式*/
+	protected SQLExpr parent;
 
 	/** 表达式的操作数 */
 	protected List<SQLExpr> elements = new ArrayList<SQLExpr>();
@@ -25,6 +33,14 @@ public class SQLExpr implements ISqlStruct {
 		super();
 		this.value = value;
 		this.type = Type.VALUE;
+	}	
+
+	public SQLExpr getParent() {
+		return parent;
+	}
+
+	public void setParent(SQLExpr parent) {
+		this.parent = parent;
 	}
 
 	public List<SQLExpr> getElements() {

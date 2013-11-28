@@ -1,8 +1,11 @@
 package org.river.sealand.schedule.visitor;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
+import org.river.sealand.meta.IMetaDataService;
 import org.river.sealand.schedule.node.AggregateNode;
 import org.river.sealand.schedule.node.HavingNode;
 import org.river.sealand.schedule.node.JoinNode;
@@ -12,6 +15,7 @@ import org.river.sealand.schedule.node.ScanNode;
 import org.river.sealand.schedule.node.ScheduleNode;
 import org.river.sealand.schedule.node.ScheduleNode.NodeType;
 import org.river.sealand.schedule.node.SortNode;
+import org.river.sealand.sql.ast.ASTStructUtils;
 import org.river.sealand.sql.ast.ISqlStruct;
 import org.river.sealand.sql.ast.ISqlStruct.SqlType;
 import org.river.sealand.sql.ast.SQLBoolExpr;
@@ -21,6 +25,8 @@ import org.river.sealand.sql.ast.SQLLimit;
 import org.river.sealand.sql.ast.SQLSelect;
 import org.river.sealand.sql.ast.SQLSort;
 import org.river.sealand.sql.ast.SQLTabReference;
+import org.river.sealand.sql.ast.SQLTabReference.RefType;
+import org.river.sealand.sql.ast.SQLTable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -33,6 +39,8 @@ import org.slf4j.LoggerFactory;
  */
 public class ASTSelectVisitor extends ASTVisitor {
 	private static final Logger log = LoggerFactory.getLogger(ASTSelectVisitor.class);
+
+	private IMetaDataService metaDataService;
 
 	@Override
 	protected ScheduleNode doVisit(ISqlStruct ast) {
@@ -198,28 +206,31 @@ public class ASTSelectVisitor extends ASTVisitor {
 		SQLTabReference right = join.getRight();
 		ScheduleNode leftNode = this.visitTabRef(left);
 		ScheduleNode rightNode = this.visitTabRef(right);
-		List<ScheduleNode> srcNodes=new ArrayList<ScheduleNode>();
+		List<ScheduleNode> srcNodes = new ArrayList<ScheduleNode>();
 		srcNodes.add(leftNode);
 		srcNodes.add(rightNode);
-		
+
 		JoinNode joinNode = new JoinNode();
 		joinNode.setOn(join.getOn().toString());
 		joinNode.setSrcNodes(srcNodes);
-		
-		SQLJoin.JoinType joinType=join.getJoinType();
-		if(joinType==SQLJoin.JoinType.INNER){
+
+		leftNode.setDestNode(joinNode);
+		rightNode.setDestNode(joinNode);
+
+		SQLJoin.JoinType joinType = join.getJoinType();
+		if (joinType == SQLJoin.JoinType.INNER) {
 			joinNode.setJoinType(JoinType.INNER);
-		}else if(joinType==SQLJoin.JoinType.LEFT){
+		} else if (joinType == SQLJoin.JoinType.LEFT) {
 			joinNode.setJoinType(JoinType.RIGHT);
-		}else if(joinType==SQLJoin.JoinType.RIGHT){
+		} else if (joinType == SQLJoin.JoinType.RIGHT) {
 			joinNode.setJoinType(JoinType.RIGHT);
 		}
-		
+
 		return joinNode;
 	}
 
 	/*
-	 * 访问join关键字,构建Join节点
+	 * 访问cross join,构建Join节点
 	 * 
 	 * @param ast
 	 * 
@@ -227,14 +238,156 @@ public class ASTSelectVisitor extends ASTVisitor {
 	 */
 	private ScheduleNode visitCrossJoin(ISqlStruct ast) {
 		SQLSelect select = (SQLSelect) ast;
-		List<SQLTabReference> fromTbls = select.getFromTbls();
-		if (fromTbls.size() == 1) {
-			// return
+		SQLBoolExpr where = select.getCriteria();
+		if (where == null) {
+			return this.visitFreeCrossJoin(ast);
 		}
-		for (SQLTabReference tmp : fromTbls) {
 
+		where = ASTStructUtils.beatOrOut(where);
+		List<SQLTabReference> fromTbls = select.getFromTbls();
+		List<SQLTabReference> globals = this.splitGlobal(fromTbls);
+		
+		for (SQLTabReference tmp : fromTbls) {
+			
 		}
+		
 		return null;
+	}
+	
+	/*
+	 * 把 SQLTabReference 列表转换为以alias为key的map
+	 * @param refs
+	 * @return
+	 */
+	private Map<String,SQLTabReference> toAliasMap(List<SQLTabReference> refs){
+		return null;
+	}
+
+	/*
+	 * 访问cross join,构建Join节点,该连接操作没有过滤条件
+	 * 
+	 * @param ast
+	 * 
+	 * @return
+	 */
+	private ScheduleNode visitFreeCrossJoin(ISqlStruct ast) {
+		SQLSelect select = (SQLSelect) ast;
+		SQLBoolExpr where = select.getCriteria();
+		where = ASTStructUtils.beatOrOut(where);
+
+		List<SQLTabReference> fromTbls = select.getFromTbls();
+		List<SQLTabReference> globals = this.splitGlobal(fromTbls);
+		ScheduleNode globalNode = this.scanNodeFromGlobals(globals, ast);
+		JoinNode joinNode = new JoinNode();
+		joinNode.getSrcNodes().add(globalNode);
+		joinNode.setJoinType(JoinType.CROSS);
+		globalNode.setDestNode(joinNode);
+
+		final int size = fromTbls.size();
+		for (int i = 0; i < size; i++) {
+			SQLTabReference tmp = fromTbls.get(i);
+			ScheduleNode node = this.visitTabRef(tmp);
+			joinNode.getSrcNodes().add(node);
+			node.setDestNode(joinNode);
+
+			if (i + 1 < size) {
+				JoinNode newJoin = new JoinNode();
+				newJoin.setJoinType(JoinType.CROSS);
+				newJoin.getSrcNodes().add(joinNode);
+				joinNode.setDestNode(newJoin);
+				joinNode = newJoin;
+			}
+		}
+		return joinNode;
+	}
+
+	/*
+	 * 分离出全局表
+	 * 
+	 * @param ref
+	 * 
+	 * @return
+	 */
+	private List<SQLTabReference> splitGlobal(List<SQLTabReference> refs) {
+		List<SQLTabReference> globals = new ArrayList<SQLTabReference>();
+		Iterator<SQLTabReference> iter = refs.iterator();
+		while (iter.hasNext()) {
+			SQLTabReference tmp = iter.next();
+			if (this.isGlobal(tmp)) {
+				globals.add(tmp);
+				iter.remove();
+			}
+		}
+		return globals;
+	}
+
+	/*
+	 * 通过 global表创建scanNode
+	 * 
+	 * @param globals
+	 * 
+	 * @return
+	 */
+	private ScheduleNode scanNodeFromGlobals(List<SQLTabReference> globals, ISqlStruct ast) {
+		ScanNode scanNode = new ScanNode();
+		StringBuffer sb = new StringBuffer();
+		sb.append("select ");
+		List<String> fields = this.buildSelectFields(globals, ast);
+
+		boolean flag = true;
+		for (String tmp : fields) {
+			if (flag) {
+				sb.append(tmp);
+				flag = false;
+			} else {
+				sb.append(",").append(tmp);
+			}
+		}
+		
+		sb.append(" from ");
+		
+		flag=true;
+		for (SQLTabReference tmp : globals) {
+			SQLTable tab=(SQLTable) tmp.getRef();
+			if (flag) {
+				sb.append(tab.getTableName());
+				flag = false;
+			} else {
+				sb.append(",").append(tab.getTableName());
+			}
+			
+			sb.append(" ").append(tmp.getAlias());
+		}
+		scanNode.setFields(fields);
+		scanNode.setSql(sb.toString());
+		return scanNode;
+	}
+
+	/*
+	 * 通过 global表创建scanNode
+	 * 
+	 * @param globals
+	 * 
+	 * @return
+	 */
+	private List<String> buildSelectFields(List<SQLTabReference> refs, ISqlStruct ast) {
+		return null;
+	}
+
+	/*
+	 * 判断是否为全局表
+	 * 
+	 * @param tabRef
+	 * 
+	 * @return
+	 */
+	private boolean isGlobal(SQLTabReference tabRef) {
+		if (tabRef.getRefType() != RefType.TABLE) {
+			return false;
+		}
+
+		SQLTable tab = (SQLTable) tabRef.getRef();
+		return this.metaDataService.isGlobal(tab.getTableName());
 	}
 
 	/*
@@ -271,6 +424,10 @@ public class ASTSelectVisitor extends ASTVisitor {
 	@Override
 	public boolean accept(ISqlStruct ast) {
 		return SqlType.SELECT == ast.getSqlType();
+	}
+
+	public void setMetaDataService(IMetaDataService metaDataService) {
+		this.metaDataService = metaDataService;
 	}
 
 }

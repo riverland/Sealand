@@ -19,6 +19,11 @@
 	<dependencies>
 		<dependency>
 			<groupId>org.river.sealand</groupId>
+			<artifactId>sealand-metaserver</artifactId>
+			<version>1.0-SNAPSHOT</version>
+		</dependency>
+		<dependency>
+			<groupId>org.river.sealand</groupId>
 			<artifactId>sealand-utils</artifactId>
 			<version>1.0-SNAPSHOT</version>
 		</dependency>
