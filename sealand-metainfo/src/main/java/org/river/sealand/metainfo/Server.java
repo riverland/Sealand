@@ -1,19 +1,33 @@
 package org.river.sealand.metainfo;
+
 /**
  * <p>
  * 计算服务节点
+ * 
  * @author river
- * @since  Nov 28, 2013
+ * @since Nov 28, 2013
  */
 public class Server {
-	/**节点编码，唯一*/
+
+	/** 节点编码，唯一 */
 	private String code;
-	
-	/**节点IP地址*/
+
+	/** 节点IP地址 */
 	private String ip;
-	
-	/**节点服务端口*/
+
+	/** 节点服务端口 */
 	private int port;
+
+	/** 服务节点类型 */
+	private ServerType serverType;
+
+	public ServerType getServerType() {
+		return serverType;
+	}
+
+	public void setServerType(ServerType serverType) {
+		this.serverType = serverType;
+	}
 
 	public String getCode() {
 		return code;
@@ -37,5 +51,9 @@ public class Server {
 
 	public void setPort(int port) {
 		this.port = port;
+	}
+
+	public static enum ServerType {
+		META, MERGE;
 	}
 }
