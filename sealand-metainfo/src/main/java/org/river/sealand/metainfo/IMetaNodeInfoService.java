@@ -7,7 +7,7 @@ package org.river.sealand.metainfo;
  * @author river
  * @since Nov 30, 2013
  */
-public interface ImetaNodeInfoService {
+public interface IMetaNodeInfoService {
 
 	/**
 	 * <p>
