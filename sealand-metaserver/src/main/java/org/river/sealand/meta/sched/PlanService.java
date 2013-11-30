@@ -22,8 +22,8 @@ import org.slf4j.LoggerFactory;
  * @since Nov 30, 2013
  */
 public abstract class PlanService implements IPlanService, Watcher {
-	private static final Logger log=LoggerFactory.getLogger(PlanService.class);
-	
+	private static final Logger log = LoggerFactory.getLogger(PlanService.class);
+
 	public final static ThreadLocal<ZooKeeper> zooKeeper = new ThreadLocal<ZooKeeper>();
 	public final static ThreadLocal<CountDownLatch> connectedSigal = new ThreadLocal<CountDownLatch>();
 
@@ -56,19 +56,36 @@ public abstract class PlanService implements IPlanService, Watcher {
 	/**
 	 * <p>
 	 * 在zookeeper上建立节点
+	 * 
 	 * @param path
 	 * @param data
 	 * @param acl
 	 * @param createMode
-	 * @throws SQLException 
+	 * @throws SQLException
 	 */
 	protected void createNode(final String path, byte data[], List<ACL> acl, CreateMode createMode) throws SQLException {
 		try {
 			zooKeeper.get().create(path, data, acl, createMode);
 		} catch (Exception e) {
-			log.error(e.getMessage(),e);
+			log.error(e.getMessage(), e);
 			throw new SQLException("");
 		}
+	}
+
+	public String getHost() {
+		return host;
+	}
+
+	public void setHost(String host) {
+		this.host = host;
+	}
+
+	public int getTimeout() {
+		return timeout;
+	}
+
+	public void setTimeout(int timeout) {
+		this.timeout = timeout;
 	}
 
 }

@@ -1,5 +1,6 @@
 package org.river.sealand.schedule.node;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -10,7 +11,8 @@ import java.util.List;
  * @author river
  * @since Nov 27, 2013
  */
-public class AggregateNode extends ScheduleNode {
+public class AggregateNode extends ScheduleNode implements Serializable {
+
 	/**分组字段*/
 	private List<String> groupBy=new ArrayList<String>();
 

@@ -22,7 +22,6 @@ public abstract class ASTVisitor implements IAstVisitor {
 	 */
 	protected abstract ScheduleNode doVisit(ISqlStruct ast);
 
-	@Override
 	public ScheduleNode visit(ISqlStruct ast) {
 		if (!this.accept(ast)) {
 			return null;

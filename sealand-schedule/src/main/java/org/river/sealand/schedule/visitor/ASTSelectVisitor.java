@@ -330,7 +330,6 @@ public class ASTSelectVisitor extends ASTVisitor {
 		return node;
 	}
 
-	@Override
 	public boolean accept(ISqlStruct ast) {
 		return SqlType.SELECT == ast.getSqlType();
 	}
