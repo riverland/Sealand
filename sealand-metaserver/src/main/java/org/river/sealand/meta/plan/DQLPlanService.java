@@ -1,4 +1,4 @@
-package org.river.sealand.meta.sched;
+package org.river.sealand.meta.plan;
 
 import org.river.sealand.schedule.node.ScheduleNode;
 import org.slf4j.Logger;

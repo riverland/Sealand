@@ -1,4 +1,4 @@
-package org.river.sealand.meta.sched;
+package org.river.sealand.meta.plan;
 
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
