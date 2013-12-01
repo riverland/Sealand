@@ -1,5 +1,6 @@
 package org.river.sealand.schedule.node;
 
+import java.io.Serializable;
 
 /**
  * <p>
@@ -8,7 +9,9 @@ package org.river.sealand.schedule.node;
  * @author river
  * @since Nov 27, 2013
  */
-public class LimitNode extends ScheduleNode {
+public class LimitNode extends ScheduleNode implements Serializable {
+	private static final long serialVersionUID = 2580907094136081687L;
+
 	private int start;
 
 	private int offset;

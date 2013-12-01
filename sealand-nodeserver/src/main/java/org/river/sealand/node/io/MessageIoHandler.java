@@ -1,8 +1,6 @@
 package org.river.sealand.node.io;
 
 import java.io.ByteArrayOutputStream;
-import java.util.HashMap;
-import java.util.Map;
 
 import org.apache.commons.lang.math.NumberUtils;
 import org.apache.mina.core.buffer.IoBuffer;

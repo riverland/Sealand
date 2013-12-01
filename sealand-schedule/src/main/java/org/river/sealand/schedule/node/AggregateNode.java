@@ -12,9 +12,10 @@ import java.util.List;
  * @since Nov 27, 2013
  */
 public class AggregateNode extends ScheduleNode implements Serializable {
-
-	/**分组字段*/
-	private List<String> groupBy=new ArrayList<String>();
+	private static final long serialVersionUID = 8485843651070083901L;
+	
+	/** 分组字段 */
+	private List<String> groupBy = new ArrayList<String>();
 
 	public List<String> getGroupBy() {
 		return groupBy;

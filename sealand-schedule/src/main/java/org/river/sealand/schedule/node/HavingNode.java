@@ -1,5 +1,6 @@
 package org.river.sealand.schedule.node;
 
+import java.io.Serializable;
 
 /**
  * <p>
@@ -8,7 +9,8 @@ package org.river.sealand.schedule.node;
  * @author river
  * @since Nov 27, 2013
  */
-public class HavingNode extends ScheduleNode {
+public class HavingNode extends ScheduleNode implements Serializable {
+	private static final long serialVersionUID = -3022494966815802898L;
 	private String havings;
 
 	public String getHavings() {
