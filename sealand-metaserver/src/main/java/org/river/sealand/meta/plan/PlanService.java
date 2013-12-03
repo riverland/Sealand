@@ -9,6 +9,7 @@ import org.apache.zookeeper.Watcher;
 import org.apache.zookeeper.Watcher.Event.KeeperState;
 import org.apache.zookeeper.ZooKeeper;
 import org.apache.zookeeper.data.ACL;
+import org.apache.zookeeper.data.Stat;
 import org.river.sealand.schedule.node.ScheduleNode;
 import org.river.sealand.utils.SQLException;
 import org.slf4j.Logger;
@@ -33,16 +34,16 @@ public abstract class PlanService implements IPlanService, Watcher {
 	/** 连接超时时间 */
 	private int timeout;
 
-	protected abstract void doPlan(ScheduleNode node);
+	protected abstract void doPlan(ScheduleNode node, String connectionId) throws SQLException;
 
 	@Override
-	public void plan(ScheduleNode schedNode) throws Exception {
+	public void plan(ScheduleNode schedNode, String connectionId) throws Exception {
 		ZooKeeper zk = new ZooKeeper(host, timeout, this);
 		CountDownLatch latch = new CountDownLatch(1);
 		zooKeeper.set(zk);
 		connectedSigal.set(latch);
 		latch.await();
-		this.doPlan(schedNode);
+		this.doPlan(schedNode, connectionId);
 		zk.close();
 	}
 
@@ -72,6 +73,28 @@ public abstract class PlanService implements IPlanService, Watcher {
 		}
 	}
 
+	/**
+	 * <p>
+	 * 在zookeeper上删除节点
+	 * 
+	 * @param path
+	 * @param data
+	 * @param acl
+	 * @param createMode
+	 * @throws SQLException
+	 */
+	protected void deleteNode(final String path) throws SQLException {
+		try {
+			Stat stat = zooKeeper.get().exists(path, null);
+			if (stat != null) {
+				zooKeeper.get().delete(path, stat.getVersion());
+			}
+		} catch (Exception e) {
+			log.error(e.getMessage(), e);
+			throw new SQLException("");
+		}
+	}
+
 	public String getHost() {
 		return host;
 	}
@@ -88,4 +111,17 @@ public abstract class PlanService implements IPlanService, Watcher {
 		this.timeout = timeout;
 	}
 
+	public enum PlanType {
+		DQL("DQL");
+
+		private String value;
+
+		public String getValue() {
+			return value;
+		}
+
+		private PlanType(String value) {
+			this.value = value;
+		}
+	}
 }

@@ -18,5 +18,5 @@ public interface IPlanService {
 	 * @param schedNode
 	 * @throws Exception 
 	 */
-	public void plan(ScheduleNode schedNode) throws Exception;
+	public void plan(ScheduleNode schedNode,String connectionId) throws Exception;
 }
