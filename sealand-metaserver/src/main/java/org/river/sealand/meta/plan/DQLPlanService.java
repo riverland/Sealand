@@ -34,6 +34,7 @@ public class DQLPlanService extends PlanService {
 
 	/** DQL在zookeeper中的地址空间 */
 	private String dqlPlanNameSpace;
+	private String pendingNumPath;
 
 	@Override
 	protected void doPlan(ScheduleNode node, String connectionId) throws SQLException {

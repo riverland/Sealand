@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 
+import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.WatchedEvent;
 import org.apache.zookeeper.Watcher;
 import org.apache.zookeeper.Watcher.Event.EventType;
@@ -11,6 +12,8 @@ import org.apache.zookeeper.Watcher.Event.KeeperState;
 import org.apache.zookeeper.ZooKeeper;
 import org.apache.zookeeper.ZooKeeper.States;
 import org.apache.zookeeper.data.Stat;
+import org.river.sealand.meta.plan.PlanService;
+import org.river.sealand.metainfo.task.Task;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -29,7 +32,11 @@ public class DQLPlanWatcher implements Watcher, Runnable {
 	private ZooKeeper zooKeeper;
 	private CountDownLatch latch = new CountDownLatch(1);
 	private Object atom = new Object();
+	private Task task;
+	private List<DQLPlanWatcher> children;
+	private DQLPlanWatcher parent;
 
+	
 	/**
 	 * <p>
 	 * 任务监控初始化
@@ -37,7 +44,7 @@ public class DQLPlanWatcher implements Watcher, Runnable {
 	 * @throws InterruptedException
 	 * @throws IOException
 	 */
-	public void initialize() throws IOException, InterruptedException {
+	public void start() throws IOException, InterruptedException {
 		this.boot();
 		WatchThread watchThread = new WatchThread();
 		watchThread.start();
@@ -48,22 +55,7 @@ public class DQLPlanWatcher implements Watcher, Runnable {
 		while (true) {
 			try {
 				synchronized (atom) {
-					List<String> children = zooKeeper.getChildren(dqlPlanNamespace, this, null);
-					if (children == null || children.isEmpty()) {
-						atom.wait(1 * 1000);
-						continue;
-					}
-
-					for (String tmp : children) {
-						Stat stat = new Stat();
-						String path = dqlPlanNamespace + "/" + tmp;
-						byte[] data = zooKeeper.getData(path, null, stat);
-						zooKeeper.delete(path, stat.getVersion());
-						if (data == null) {
-							continue;
-						}
-
-					}
+					atom.wait();
 				}
 			} catch (Throwable e) {
 				log.error(e.getMessage());
@@ -76,6 +68,15 @@ public class DQLPlanWatcher implements Watcher, Runnable {
 
 		if (event.getType() == EventType.NodeDataChanged) {
 			atom.notifyAll();
+		}
+	}
+	
+	/*
+	 * 唤醒上一级执行监听
+	 */
+	private void wakeupParent(){
+		if(parent!=null){
+			parent.atom.notify();
 		}
 	}
 

@@ -33,6 +33,7 @@ public abstract class PlanService implements IPlanService, Watcher {
 	
 	public static final Integer STATUS_PLANNING=-1;	
 	public static final Integer STATUS_PLANNED=5;
+	public static final Integer STATUS_EXECUTE=10;
 	
 	/** zookeeper 服务器地址 */
 	private String host;

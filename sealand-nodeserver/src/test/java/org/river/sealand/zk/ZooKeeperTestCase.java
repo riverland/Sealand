@@ -41,14 +41,14 @@ public class ZooKeeperTestCase extends TestCase implements Watcher {
 //		}
 		List<String> children=zooKeeper.getChildren("/a", new ChangedWatcher());
 		
-		if(children!=null&&!children.isEmpty()){
-			for(String tmp:children){
-				Stat stat=zooKeeper.exists("/a/"+tmp, null);
-				log.info("deleting:"+tmp);
-				zooKeeper.delete("/a/"+tmp, stat.getVersion());
-				log.info("deleted:"+tmp);
-			}
-		}
+//		if(children!=null&&!children.isEmpty()){
+//			for(String tmp:children){
+//				Stat stat=zooKeeper.exists("/a/"+tmp, null);
+//				log.info("deleting:"+tmp);
+//				zooKeeper.delete("/a/"+tmp, stat.getVersion());
+//				log.info("deleted:"+tmp);
+//			}
+//		}
 		Thread.sleep(60*1000);
 	}
 
