@@ -27,6 +27,6 @@ public class TaskUtils {
 
 		}
 
-		return "task-yyyyMMddHHmmssSSS-"+String.format("%03d", cycle);
+		return "task_yyyyMMddHHmmssSSS_"+String.format("%03d", cycle);
 	}
 }

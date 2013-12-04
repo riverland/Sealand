@@ -11,10 +11,13 @@ import java.util.List;
  */
 public class LimitTask extends Task {
 
-	private static final long serialVersionUID = 6996501368131685767L;
-
-	/**排序*/
-	public String orderBy;
+	private static final long serialVersionUID = -514125465396481784L;
+	
+	/**数据开始行数*/
+	public int start;
+	
+	/**记录偏移量*/
+	public int offset;
 
 	/** 需要传输获取的数据ID */
 	public List<String> distributeDataIds;
@@ -24,6 +27,6 @@ public class LimitTask extends Task {
 
 	@Override
 	public Type getType() {
-		return Type.LIMIT;
+		return Type.SORT;
 	}
 }

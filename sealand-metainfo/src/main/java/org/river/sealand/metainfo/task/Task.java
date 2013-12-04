@@ -12,7 +12,7 @@ import java.util.List;
  */
 public abstract class Task implements Serializable {
 	private static final long serialVersionUID = 5128094283936211477L;
-
+	
 	/** 任务ID */
 	public String taskId;
 

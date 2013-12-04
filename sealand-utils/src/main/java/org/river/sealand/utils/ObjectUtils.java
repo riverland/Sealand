@@ -6,6 +6,9 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /**
  * <p>
  * java Object工具类
@@ -14,6 +17,8 @@ import java.io.ObjectOutputStream;
  * @since Dec 1, 2013
  */
 public class ObjectUtils {
+	private static Logger log=LoggerFactory.getLogger(ObjectUtils.class);
+	
 	/**
 	 * <p>
 	 * 把对象序列为二进制流
@@ -22,10 +27,15 @@ public class ObjectUtils {
 	 * @return
 	 * @throws IOException
 	 */
-	public static byte[] write(Object obj) throws IOException {
+	public static byte[] write(Object obj){
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
-		ObjectOutputStream oos = new ObjectOutputStream(baos);
-		oos.writeObject(obj);
+		try{
+			ObjectOutputStream oos = new ObjectOutputStream(baos);
+			oos.writeObject(obj);
+		}catch(Exception e){
+			log.error(e.getLocalizedMessage());
+		}
+
 		return baos.toByteArray();
 	}
 

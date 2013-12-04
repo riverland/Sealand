@@ -1,6 +1,9 @@
 package org.river.sealand.metainfo.task;
 
 import java.util.List;
+import java.util.Map;
+
+import org.river.sealand.sql.ast.SQLSort;
 
 /**
  * <p>
@@ -11,13 +14,10 @@ import java.util.List;
  */
 public class SortTask extends Task {
 
-	private static final long serialVersionUID = -514125465396481784L;
-	
-	/**数据开始行数*/
-	public int start;
-	
-	/**记录偏移量*/
-	public int offset;
+	private static final long serialVersionUID = 6996501368131685767L;
+
+	/**排序*/
+	public Map<String, SQLSort.Type> orderBy;
 
 	/** 需要传输获取的数据ID */
 	public List<String> distributeDataIds;
@@ -27,6 +27,6 @@ public class SortTask extends Task {
 
 	@Override
 	public Type getType() {
-		return Type.SORT;
+		return Type.LIMIT;
 	}
 }

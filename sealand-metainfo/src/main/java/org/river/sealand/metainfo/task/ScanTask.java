@@ -1,5 +1,7 @@
 package org.river.sealand.metainfo.task;
 
+import java.util.List;
+
 /**
  * <p>
  * SQL执行任务
@@ -11,6 +13,12 @@ public class ScanTask extends Task {
 
 	/** 可执行的sql */
 	public String sql;
+	
+	/**是否是全局sql*/
+	public boolean isGlobal;
+	
+	/**sql中涉及到的表名*/
+	public List<String> tables;
 
 	@Override
 	public Type getType() {

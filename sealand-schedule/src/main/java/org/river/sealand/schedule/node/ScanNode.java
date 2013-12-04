@@ -1,6 +1,7 @@
 package org.river.sealand.schedule.node;
 
 import java.io.Serializable;
+import java.util.List;
 
 /**
  * <p>
@@ -16,6 +17,16 @@ public class ScanNode extends ScheduleNode implements Serializable {
 	private String sql;
 
 	private boolean isGlobal;
+	
+	private List<String> tables;
+
+	public List<String> getTables() {
+		return tables;
+	}
+
+	public void setTables(List<String> tables) {
+		this.tables = tables;
+	}
 
 	public boolean isGlobal() {
 		return isGlobal;
