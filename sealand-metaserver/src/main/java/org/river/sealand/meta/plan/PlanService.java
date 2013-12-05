@@ -27,13 +27,6 @@ public abstract class PlanService implements IPlanService, Watcher {
 
 	public final static ThreadLocal<ZooKeeper> zooKeeper = new ThreadLocal<ZooKeeper>();
 	public final static ThreadLocal<CountDownLatch> connectedSigal = new ThreadLocal<CountDownLatch>();
-
-	public final static String PLAN_TYPE_PATH="type";
-	public final static String PLAN_STATUS_PATH="status";
-	
-	public static final Integer STATUS_PLANNING=-1;	
-	public static final Integer STATUS_PLANNED=5;
-	public static final Integer STATUS_EXECUTE=10;
 	
 	/** zookeeper 服务器地址 */
 	private String host;

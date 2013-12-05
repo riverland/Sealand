@@ -9,4 +9,8 @@ package org.river.sealand.meta.plan;
 public class TaskInfoPath {
 	public static final String PENDING_TASK_NUM_FOR_META_PATH="pending_num";
 	public static final String TASK_RECORD_NUM_FOR_META_PATH="record_num";
+	public static final String TASK_STATUS_FOR_META_PATH="task_status";	
+	public static final String TASK_TYPE_FOR_META_PATH="task_type";
+	
+	public static final String NODE_SERVERS_PATH="node_servers";
 }

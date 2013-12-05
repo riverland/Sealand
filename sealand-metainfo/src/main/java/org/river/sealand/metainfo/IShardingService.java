@@ -1,5 +1,7 @@
 package org.river.sealand.metainfo;
 
+import java.util.Set;
+
 /**
  * <p>
  * 分片相关服务

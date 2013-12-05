@@ -6,6 +6,7 @@ import org.river.sealand.metainfo.task.JoinTask;
 import org.river.sealand.metainfo.task.LimitTask;
 import org.river.sealand.metainfo.task.ScanTask;
 import org.river.sealand.metainfo.task.SortTask;
+import org.river.sealand.metainfo.task.TaskStatus;
 import org.river.sealand.metainfo.task.TaskUtils;
 import org.river.sealand.schedule.node.AggregateNode;
 import org.river.sealand.schedule.node.HavingNode;
@@ -42,8 +43,8 @@ public class DQLPlanService extends PlanService {
 		try {
 			createNode(conPath, connectionId.getBytes(), null, CreateMode.PERSISTENT);
 			this.planTask(conPath, node, connectionId);
-			createNode(conPath+"/"+PlanService.PLAN_TYPE_PATH, PlanType.DQL.getValue().getBytes(), null, CreateMode.PERSISTENT);
-			createNode(conPath+"/"+PlanService.STATUS_PLANNED, STATUS_PLANNED.toString().getBytes(), null, CreateMode.PERSISTENT);			
+			createNode(conPath+"/"+TaskInfoPath.TASK_TYPE_FOR_META_PATH, PlanType.DQL.getValue().getBytes(), null, CreateMode.PERSISTENT);
+			createNode(conPath+"/"+TaskInfoPath.TASK_STATUS_FOR_META_PATH, TaskStatus.PLANNED.getValue().getBytes(), null, CreateMode.PERSISTENT);			
 		} catch (Throwable e) {
 			deleteNode(conPath);
 		}

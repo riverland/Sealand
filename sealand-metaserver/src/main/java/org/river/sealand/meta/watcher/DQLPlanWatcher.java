@@ -4,16 +4,16 @@ import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 
-import org.apache.zookeeper.CreateMode;
+import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.WatchedEvent;
 import org.apache.zookeeper.Watcher;
 import org.apache.zookeeper.Watcher.Event.EventType;
 import org.apache.zookeeper.Watcher.Event.KeeperState;
 import org.apache.zookeeper.ZooKeeper;
 import org.apache.zookeeper.ZooKeeper.States;
-import org.apache.zookeeper.data.Stat;
-import org.river.sealand.meta.plan.PlanService;
+import org.river.sealand.meta.plan.TaskInfoPath;
 import org.river.sealand.metainfo.task.Task;
+import org.river.sealand.metainfo.task.TaskStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -24,19 +24,20 @@ import org.slf4j.LoggerFactory;
  * @author river
  * @since Nov 30, 2013
  */
-public class DQLPlanWatcher implements Watcher, Runnable {
+public class DQLPlanWatcher implements Watcher, ITaskWatcher, Runnable {
 	private static final Logger log = LoggerFactory.getLogger(DQLPlanWatcher.class);
 
 	/** DQL在zookeeper中的地址空间 */
-	private String dqlPlanNamespace;
+	private String zkHost;
 	private ZooKeeper zooKeeper;
-	private CountDownLatch latch = new CountDownLatch(1);
-	private Object atom = new Object();
 	private Task task;
+	private String taskPath;
 	private List<DQLPlanWatcher> children;
 	private DQLPlanWatcher parent;
+	private boolean alive = true;
+	private CountDownLatch latch = new CountDownLatch(1);
+	private Object atom = new Object();
 
-	
 	/**
 	 * <p>
 	 * 任务监控初始化
@@ -44,6 +45,7 @@ public class DQLPlanWatcher implements Watcher, Runnable {
 	 * @throws InterruptedException
 	 * @throws IOException
 	 */
+	@Override
 	public void start() throws IOException, InterruptedException {
 		this.boot();
 		WatchThread watchThread = new WatchThread();
@@ -56,6 +58,12 @@ public class DQLPlanWatcher implements Watcher, Runnable {
 			try {
 				synchronized (atom) {
 					atom.wait();
+					TaskStatus status=this.getTaskStatus();
+					if(status==TaskStatus.TO_ASSIGN){
+						this.assign(task);
+					}else if(status==TaskStatus.COMMPLETED){
+						this.wakeUpParent();
+					}
 				}
 			} catch (Throwable e) {
 				log.error(e.getMessage());
@@ -63,20 +71,23 @@ public class DQLPlanWatcher implements Watcher, Runnable {
 		}
 	}
 
+	/*
+	 * 获取任务状态
+	 * 
+	 * @return
+	 */
+	private TaskStatus getTaskStatus() throws Exception {
+		final String path = this.taskPath + "/" + TaskInfoPath.TASK_STATUS_FOR_META_PATH;
+		byte[] data = this.zooKeeper.getData(path, null, null);
+		String status=new String(data);
+		return TaskStatus.fromValue(status);
+	}
+
 	@Override
 	public void process(WatchedEvent event) {
 
 		if (event.getType() == EventType.NodeDataChanged) {
 			atom.notifyAll();
-		}
-	}
-	
-	/*
-	 * 唤醒上一级执行监听
-	 */
-	private void wakeupParent(){
-		if(parent!=null){
-			parent.atom.notify();
 		}
 	}
 
@@ -88,7 +99,7 @@ public class DQLPlanWatcher implements Watcher, Runnable {
 	 * @throws InterruptedException
 	 */
 	private void boot() throws IOException, InterruptedException {
-		zooKeeper = new ZooKeeper(dqlPlanNamespace, -1, new Watcher() {
+		zooKeeper = new ZooKeeper(zkHost, -1, new Watcher() {
 			@Override
 			public void process(WatchedEvent event) {
 				if (event.getState() == KeeperState.SyncConnected) {
@@ -113,7 +124,7 @@ public class DQLPlanWatcher implements Watcher, Runnable {
 
 		@Override
 		public void run() {
-			while (true) {
+			while (alive) {
 				try {
 					if (zooKeeper == null || zooKeeper.getState() == States.CLOSED || zooKeeper.getState() == States.NOT_CONNECTED) {
 						boot();
@@ -124,6 +135,28 @@ public class DQLPlanWatcher implements Watcher, Runnable {
 					log.error(e.getMessage());
 				}
 			}
+		}
+	}
+
+	@Override
+	public void close() {
+		alive = false;
+		try {
+			zooKeeper.close();
+		} catch (InterruptedException e) {
+			// TODO some logic
+		}
+	}
+
+	@Override
+	public void assign(Task task) {
+
+	}
+
+	@Override
+	public void wakeUpParent() {
+		if (parent != null) {
+			parent.atom.notify();
 		}
 	}
 
