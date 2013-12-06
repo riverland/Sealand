@@ -14,6 +14,7 @@ import org.river.sealand.metainfo.task.LimitTask;
 import org.river.sealand.metainfo.task.ScanTask;
 import org.river.sealand.metainfo.task.SortTask;
 import org.river.sealand.metainfo.task.Task;
+import org.river.sealand.metainfo.task.TaskInfoPath;
 import org.river.sealand.metainfo.task.TaskStatus;
 import org.river.sealand.metainfo.task.TaskUtils;
 import org.river.sealand.schedule.node.AggregateNode;

@@ -1,7 +1,8 @@
 package org.river.sealand.node.task;
 
-import org.river.base.threads.impl.AsyncQueueHandler;
+import org.river.base.threads.impl.QueueHandlerAdaptor;
 import org.river.base.threads.type.DataEntity;
+import org.river.sealand.metainfo.task.ScanTask;
 import org.river.sealand.metainfo.task.Task;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -13,13 +14,19 @@ import org.slf4j.LoggerFactory;
  * @author river
  * @since Dec 1, 2013
  */
-public class SQLScanTaskHandler extends AsyncQueueHandler<Task> {
+public class SQLScanTaskHandler extends QueueHandlerAdaptor<Task> {
 
-	private static Logger log = LoggerFactory.getLogger(SQLScanTaskHandler.class);
+	private static Logger LOG = LoggerFactory.getLogger(SQLScanTaskHandler.class);
 
 	@Override
 	public void handle(DataEntity<Task> data) {
-		super.handle(data);
+		if (!this.needHandle(data)) {
+			return;
+		}
+		
+		ScanTask task=(ScanTask)data.getData();
+		
+		data.setData(null);		
 	}
 
 	@Override
@@ -27,15 +34,7 @@ public class SQLScanTaskHandler extends AsyncQueueHandler<Task> {
 		return Task.class;
 	}
 
-	@Override
-	protected void asyncHandle(Task data) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
 	protected boolean needHandle(DataEntity<Task> data) {
-		// TODO Auto-generated method stub
 		return false;
 	}
 

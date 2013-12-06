@@ -2,8 +2,8 @@ package org.river.sealand.meta.watcher;
 
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.ZooKeeper;
-import org.river.sealand.meta.plan.TaskInfoPath;
 import org.river.sealand.metainfo.task.Task;
+import org.river.sealand.metainfo.task.TaskInfoPath;
 import org.river.sealand.utils.SQLException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
