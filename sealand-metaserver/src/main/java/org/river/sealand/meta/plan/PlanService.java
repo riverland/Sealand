@@ -29,7 +29,7 @@ public abstract class PlanService implements IPlanService, Watcher {
 	public final static ThreadLocal<CountDownLatch> connectedSigal = new ThreadLocal<CountDownLatch>();
 	
 	/** zookeeper 服务器地址 */
-	private String host;
+	private String zkHost;
 
 	/** 连接超时时间 */
 	private int timeout;
@@ -38,7 +38,7 @@ public abstract class PlanService implements IPlanService, Watcher {
 
 	@Override
 	public void plan(ScheduleNode schedNode, String connectionId) throws Exception {
-		ZooKeeper zk = new ZooKeeper(host, timeout, this);
+		ZooKeeper zk = new ZooKeeper(zkHost, timeout, this);
 		CountDownLatch latch = new CountDownLatch(1);
 		zooKeeper.set(zk);
 		connectedSigal.set(latch);
@@ -96,12 +96,12 @@ public abstract class PlanService implements IPlanService, Watcher {
 		}
 	}
 
-	public String getHost() {
-		return host;
+	public String getZkHost() {
+		return zkHost;
 	}
 
-	public void setHost(String host) {
-		this.host = host;
+	public void setZkHost(String host) {
+		this.zkHost = host;
 	}
 
 	public int getTimeout() {

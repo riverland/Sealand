@@ -16,6 +16,7 @@ import org.apache.zookeeper.ZooKeeper.States;
 import org.apache.zookeeper.data.Stat;
 import org.river.sealand.meta.plan.TaskInfoPath;
 import org.river.sealand.metainfo.task.Task;
+import org.river.sealand.metainfo.task.Task.Type;
 import org.river.sealand.metainfo.task.TaskStatus;
 import org.river.sealand.utils.SQLException;
 import org.slf4j.Logger;
@@ -36,13 +37,19 @@ public class DQLPlanWatcher implements Watcher, ITaskWatcher, Runnable {
 	private ZooKeeper zooKeeper;
 	private Task task;
 	private String taskPath;
-	private List<DQLPlanWatcher> children;
-	private DQLPlanWatcher parent;
+	private List<ITaskWatcher> children;
+	private ITaskWatcher parent;
 	private boolean alive = true;
 	private CountDownLatch latch = new CountDownLatch(1);
 	private Object atom = new Object();
-	private Map<Task.Type,ITaskAssigner> assignerMap=new HashMap<Task.Type,ITaskAssigner>();
-	
+	private Map<Task.Type, ITaskAssigner> assignerMap = new HashMap<Task.Type, ITaskAssigner>();
+
+	public DQLPlanWatcher(String zkHost, Map<Type, ITaskAssigner> assignerMap) {
+		super();
+		this.zkHost = zkHost;
+		this.assignerMap = assignerMap;
+	}
+
 	/**
 	 * <p>
 	 * 任务监控初始化
@@ -63,10 +70,10 @@ public class DQLPlanWatcher implements Watcher, ITaskWatcher, Runnable {
 			try {
 				synchronized (atom) {
 					atom.wait();
-					TaskStatus status=this.updateStatus();
-					if(status==TaskStatus.TO_ASSIGN){
+					TaskStatus status = this.updateStatus();
+					if (status == TaskStatus.TO_ASSIGN) {
 						this.assign(task);
-					}else if(status==TaskStatus.COMMPLETED){
+					} else if (status == TaskStatus.COMMPLETED) {
 						this.wakeUpParent();
 					}
 				}
@@ -75,32 +82,33 @@ public class DQLPlanWatcher implements Watcher, ITaskWatcher, Runnable {
 			}
 		}
 	}
-	
+
 	/*
-	 * 检查更新当前任务状态 
+	 * 检查更新当前任务状态
+	 * 
 	 * @return
 	 */
-	private TaskStatus updateStatus() throws Exception{
-		if(this.getPendingNum()>0){
+	private TaskStatus updateStatus() throws Exception {
+		if (this.getPendingNum() > 0) {
 			return this.getTaskStatus();
 		}
-		
 
 		final String path = this.taskPath + "/" + TaskInfoPath.META_TASK_STATUS_PATH;
-		
-		Stat stat=zooKeeper.exists(path, false);
+
+		Stat stat = zooKeeper.exists(path, false);
 		zooKeeper.setData(path, TaskStatus.COMMPLETED.getValue().getBytes(), stat.getVersion());
-		
+
 		return TaskStatus.COMMPLETED;
 	}
-	
+
 	/*
-	 * 获取执行中的子任务数量 
+	 * 获取执行中的子任务数量
+	 * 
 	 * @return
 	 */
-	private int getPendingNum() throws KeeperException, InterruptedException{
+	private int getPendingNum() throws KeeperException, InterruptedException {
 		final String path = this.taskPath + "/" + TaskInfoPath.META_PENDING_NUM_PATH;
-		byte[] data=zooKeeper.getData(path, null, null);
+		byte[] data = zooKeeper.getData(path, null, null);
 		return Integer.valueOf(new String(data));
 	}
 
@@ -112,7 +120,7 @@ public class DQLPlanWatcher implements Watcher, ITaskWatcher, Runnable {
 	private TaskStatus getTaskStatus() throws Exception {
 		final String path = this.taskPath + "/" + TaskInfoPath.META_TASK_STATUS_PATH;
 		byte[] data = this.zooKeeper.getData(path, null, null);
-		String status=new String(data);
+		String status = new String(data);
 		return TaskStatus.fromValue(status);
 	}
 
@@ -183,25 +191,17 @@ public class DQLPlanWatcher implements Watcher, ITaskWatcher, Runnable {
 
 	@Override
 	public void assign(Task task) throws SQLException {
-		ITaskAssigner assigner=this.assignerMap.get(task.getType());
+		ITaskAssigner assigner = this.assignerMap.get(task.getType());
 		assigner.assign(task, taskPath);
 	}
 
 	@Override
 	public void wakeUpParent() {
 		if (parent != null) {
-			parent.atom.notify();
+			parent.wakeup();
 		}
 	}
-	
-	public List<DQLPlanWatcher> getChildren() {
-		return children;
-	}
 
-	public void setChildren(List<DQLPlanWatcher> children) {
-		this.children = children;
-	}
-	
 	public String getZkHost() {
 		return zkHost;
 	}
@@ -212,6 +212,21 @@ public class DQLPlanWatcher implements Watcher, ITaskWatcher, Runnable {
 
 	public void setParent(DQLPlanWatcher parent) {
 		this.parent = parent;
+	}
+
+	@Override
+	public void addChild(ITaskWatcher child) {
+		this.children.add(child);
+	}
+
+	@Override
+	public void setParent(ITaskWatcher parent) {
+		this.parent = parent;
+	}
+
+	@Override
+	public void wakeup() {
+		this.atom.notifyAll();
 	}
 
 }

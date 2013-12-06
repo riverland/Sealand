@@ -40,4 +40,24 @@ public interface ITaskWatcher {
 	 * 唤醒启动上一级监听
 	 */
 	public void wakeUpParent();
+	
+	/**
+	 * <p>
+	 * 添加一个子监听点
+	 * @param child
+	 */
+	public void addChild(ITaskWatcher child);
+	
+	/**
+	 * <p>
+	 * 设置上一级监听点
+	 * @param parent
+	 */
+	public void setParent(ITaskWatcher parent);
+	
+	/**
+	 * <p>
+	 * 唤醒等待
+	 */
+	public void wakeup();
 }
