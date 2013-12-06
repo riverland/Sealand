@@ -4,7 +4,7 @@ import java.util.List;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.zookeeper.CreateMode;
-import org.apache.zookeeper.KeeperException;
+import org.apache.zookeeper.ZooKeeper;
 import org.river.sealand.meta.plan.TaskInfoPath;
 import org.river.sealand.metainfo.task.HavingTask;
 import org.river.sealand.metainfo.task.Task;
@@ -32,6 +32,7 @@ public class HavingTaskAssigner extends TaskAssigner {
 		}
 
 		try {
+			ZooKeeper zooKeeper = this.getZooKeeper();
 			List<String> nodes = zooKeeper.getChildren(TaskInfoPath.NODE_SERVERS_PATH, null);
 			this.setTaskMetaInfo(nodes.size(), taskPath);
 
@@ -64,10 +65,11 @@ public class HavingTaskAssigner extends TaskAssigner {
 	 * 
 	 * @return
 	 */
-	private String assignHavingTask4Waiting(HavingTask task, String taskPath) throws KeeperException, InterruptedException {
+	private String assignHavingTask4Waiting(HavingTask task, String taskPath) throws Exception {
 		byte[] taskData = ObjectUtils.write(task);
 		String nodePath = metaNodeInfoService.getLRUNode();
 		final String waitTaskPath = nodePath + "/" + TaskInfoPath.NODE_WAITING_TASK_LIST_PATH + "/" + TaskInfoPath.NODE_TASK_PATH;
+		ZooKeeper zooKeeper = this.getZooKeeper();
 		String realWaitTaskPath = zooKeeper.create(waitTaskPath, taskData, null, CreateMode.PERSISTENT_SEQUENTIAL);
 		zooKeeper.create(realWaitTaskPath + "/" + TaskInfoPath.NODE_TASK_DEST_PATH, taskPath.getBytes(), null, CreateMode.PERSISTENT);
 
@@ -78,6 +80,7 @@ public class HavingTaskAssigner extends TaskAssigner {
 	protected void setTaskMetaInfo(int pendingNum, String taskPath) throws SQLException {
 		super.setTaskMetaInfo(pendingNum, taskPath);
 		try {
+			ZooKeeper zooKeeper = this.getZooKeeper();
 			zooKeeper.create(taskPath + "/" + TaskInfoPath.META_TASK_TYPE_PATH, Task.Type.HAVING.getValue().getBytes(), null, CreateMode.PERSISTENT);
 		} catch (Exception e) {
 			// TOTO 定义sql异常

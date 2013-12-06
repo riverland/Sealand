@@ -1,23 +1,17 @@
 package org.river.sealand.meta.watcher;
 
-import java.io.IOException;
 import java.util.List;
-import java.util.concurrent.CountDownLatch;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.zookeeper.CreateMode;
-import org.apache.zookeeper.KeeperException;
-import org.apache.zookeeper.WatchedEvent;
-import org.apache.zookeeper.Watcher;
-import org.apache.zookeeper.Watcher.Event.KeeperState;
 import org.apache.zookeeper.ZooKeeper;
-import org.apache.zookeeper.ZooKeeper.States;
 import org.river.sealand.meta.plan.TaskInfoPath;
 import org.river.sealand.metainfo.IMetaNodeInfoService;
 import org.river.sealand.metainfo.task.Task;
 import org.river.sealand.metainfo.task.TaskStatus;
 import org.river.sealand.utils.ObjectUtils;
 import org.river.sealand.utils.SQLException;
+import org.river.sealand.utils.ZooKeeperUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -30,16 +24,11 @@ import org.slf4j.LoggerFactory;
  */
 public abstract class TaskAssigner implements ITaskAssigner {
 	private static final Logger LOG = LoggerFactory.getLogger(TaskAssigner.class);
-
-	protected ZooKeeper zooKeeper;
-	protected CountDownLatch latch;
+	private static final ThreadLocal<ZooKeeper> zooKeeperLocal = new ThreadLocal<ZooKeeper>();
 
 	protected String zkHost;
+	protected long timeout;
 	protected IMetaNodeInfoService metaNodeInfoService;
-
-	public void initialize() {
-		new WatchThread().start();
-	}
 
 	@Override
 	public void assign(Task task, String taskPath) throws SQLException {
@@ -49,6 +38,7 @@ public abstract class TaskAssigner implements ITaskAssigner {
 		}
 
 		try {
+			ZooKeeper zooKeeper = this.getZooKeeper();
 			List<String> nodes = zooKeeper.getChildren(TaskInfoPath.NODE_SERVERS_PATH, null);
 			this.setTaskMetaInfo(nodes.size(), taskPath);
 			for (String tmp : nodes) {
@@ -73,7 +63,8 @@ public abstract class TaskAssigner implements ITaskAssigner {
 	 * 
 	 * @param task
 	 */
-	protected void assign2Node(String nodePath, String destTaskPath, Task task) throws KeeperException, InterruptedException {
+	protected void assign2Node(String nodePath, String destTaskPath, Task task) throws Exception {
+		ZooKeeper zooKeeper = this.getZooKeeper();
 		byte[] taskData = ObjectUtils.write(task);
 		final String taskPath = nodePath + "/" + TaskInfoPath.NODE_PENDING_TASK_LIST_PATH + "/" + TaskInfoPath.NODE_TASK_PATH;
 		final String realTaskPath = zooKeeper.create(taskPath, taskData, null, CreateMode.PERSISTENT_SEQUENTIAL);
@@ -94,6 +85,7 @@ public abstract class TaskAssigner implements ITaskAssigner {
 	 */
 	protected void setTaskMetaInfo(int pendingNum, String taskPath) throws SQLException {
 		try {
+			ZooKeeper zooKeeper = this.getZooKeeper();
 			zooKeeper.create(taskPath + "/" + TaskInfoPath.META_PENDING_NUM_PATH, String.valueOf(pendingNum).getBytes(), null, CreateMode.PERSISTENT);
 			zooKeeper.create(taskPath + "/" + TaskInfoPath.META_TASK_RECORD_NUM_PATH, String.valueOf(0).getBytes(), null, CreateMode.PERSISTENT);
 			zooKeeper.create(taskPath + "/" + TaskInfoPath.META_TASK_STATUS_PATH, TaskStatus.ASSIGNED.getValue().getBytes(), null, CreateMode.PERSISTENT);
@@ -104,50 +96,19 @@ public abstract class TaskAssigner implements ITaskAssigner {
 	}
 
 	/*
-	 * 启动ZooKeeper客户端
+	 * 获取zooKeeper
 	 * 
-	 * @throws IOException
+	 * @return
 	 * 
-	 * @throws InterruptedException
+	 * @throws Exception
 	 */
-	private void boot() throws IOException, InterruptedException {
-		latch = new CountDownLatch(1);
-		zooKeeper = new ZooKeeper(zkHost, -1, new Watcher() {
-			@Override
-			public void process(WatchedEvent event) {
-				if (event.getState() == KeeperState.SyncConnected) {
-					latch.countDown();
-				}
-			}
-		});
-
-		latch.await();
-	}
-
-	/**
-	 * <p>
-	 * zookeeper alive监控线程
-	 * 
-	 * @author river
-	 * @since Nov 30, 2013
-	 */
-	private class WatchThread extends Thread {
-		final long SLEEP_TIME = 10 * 1000;
-
-		@Override
-		public void run() {
-			while (true) {
-				try {
-					if (zooKeeper == null || zooKeeper.getState() == States.CLOSED || zooKeeper.getState() == States.NOT_CONNECTED) {
-						boot();
-					} else {
-						Thread.sleep(SLEEP_TIME);
-					}
-				} catch (Throwable e) {
-					LOG.error(e.getMessage());
-				}
-			}
+	protected ZooKeeper getZooKeeper() throws Exception {
+		ZooKeeper zk = zooKeeperLocal.get();
+		if (zk == null) {
+			zk = ZooKeeperUtils.getZooKeeper(zkHost, timeout);
+			zooKeeperLocal.set(zk);
 		}
+		return zk;
 	}
 
 	public String getZkHost() {

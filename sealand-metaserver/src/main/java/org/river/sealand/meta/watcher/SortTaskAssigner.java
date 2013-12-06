@@ -1,6 +1,7 @@
 package org.river.sealand.meta.watcher;
 
 import org.apache.zookeeper.CreateMode;
+import org.apache.zookeeper.ZooKeeper;
 import org.river.sealand.meta.plan.TaskInfoPath;
 import org.river.sealand.metainfo.task.Task;
 import org.river.sealand.utils.SQLException;
@@ -21,6 +22,7 @@ public class SortTaskAssigner extends TaskAssigner {
 	protected void setTaskMetaInfo(int pendingNum, String taskPath) throws SQLException {
 		super.setTaskMetaInfo(pendingNum, taskPath);
 		try {
+			ZooKeeper zooKeeper = this.getZooKeeper();
 			zooKeeper.create(taskPath + "/" + TaskInfoPath.META_TASK_TYPE_PATH, Task.Type.SORT.getValue().getBytes(), null, CreateMode.PERSISTENT);
 		} catch (Exception e) {
 			LOG.error(e.getLocalizedMessage());

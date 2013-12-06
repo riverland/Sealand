@@ -5,7 +5,7 @@ import java.util.List;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.zookeeper.CreateMode;
-import org.apache.zookeeper.KeeperException;
+import org.apache.zookeeper.ZooKeeper;
 import org.river.sealand.meta.plan.TaskInfoPath;
 import org.river.sealand.metainfo.task.JoinTask;
 import org.river.sealand.metainfo.task.Task;
@@ -32,6 +32,7 @@ public class JoinTaskAssigner extends TaskAssigner {
 		}
 
 		try {
+			ZooKeeper zooKeeper = this.getZooKeeper();
 			List<String> nodes = zooKeeper.getChildren(TaskInfoPath.NODE_SERVERS_PATH, null);
 			this.setTaskMetaInfo(nodes.size(), taskPath);
 			this.setTransferInfo((JoinTask)task, taskPath);
@@ -65,6 +66,7 @@ public class JoinTaskAssigner extends TaskAssigner {
 			List<String> dataIds=new ArrayList<String>();
 			String localDataId=null;
 			int max=0;
+			ZooKeeper zooKeeper = this.getZooKeeper();
 			List<String> nodes = zooKeeper.getChildren(taskPath, null);
 			for (String tmp : nodes) {
 				if(StringUtils.isEmpty(tmp)||!tmp.matches(TaskInfoPath.TASK_NAME_PATTERN)){
@@ -97,7 +99,8 @@ public class JoinTaskAssigner extends TaskAssigner {
 	 * @param taskPath
 	 * @return
 	 */
-	private int getRecordNum(String taskPath) throws KeeperException, InterruptedException{
+	private int getRecordNum(String taskPath) throws Exception{
+		ZooKeeper zooKeeper = this.getZooKeeper();
 		byte[] recNumData = zooKeeper.getData(taskPath + "/" + TaskInfoPath.META_TASK_RECORD_NUM_PATH, null, null);
 		String recNumStr = new String(recNumData);
 		Integer recNum = new Integer(recNumStr);
@@ -108,6 +111,7 @@ public class JoinTaskAssigner extends TaskAssigner {
 	protected void setTaskMetaInfo(int pendingNum, String taskPath) throws SQLException {
 		super.setTaskMetaInfo(pendingNum, taskPath);
 		try {
+			ZooKeeper zooKeeper = this.getZooKeeper();
 			zooKeeper.create(taskPath + "/" + TaskInfoPath.META_TASK_TYPE_PATH, Task.Type.JOIN.getValue().getBytes(), null, CreateMode.PERSISTENT);
 		} catch (Exception e) {
 			// TOTO 定义sql异常

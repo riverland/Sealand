@@ -1,6 +1,11 @@
 package org.river.sealand.meta.plan;
 
+import java.util.List;
+import java.util.Map;
+
 import org.apache.zookeeper.CreateMode;
+import org.river.sealand.meta.watcher.DQLPlanWatcher;
+import org.river.sealand.meta.watcher.ITaskAssigner;
 import org.river.sealand.meta.watcher.ITaskWatcher;
 import org.river.sealand.metainfo.task.AggregateTask;
 import org.river.sealand.metainfo.task.HavingTask;
@@ -8,6 +13,7 @@ import org.river.sealand.metainfo.task.JoinTask;
 import org.river.sealand.metainfo.task.LimitTask;
 import org.river.sealand.metainfo.task.ScanTask;
 import org.river.sealand.metainfo.task.SortTask;
+import org.river.sealand.metainfo.task.Task;
 import org.river.sealand.metainfo.task.TaskStatus;
 import org.river.sealand.metainfo.task.TaskUtils;
 import org.river.sealand.schedule.node.AggregateNode;
@@ -35,14 +41,17 @@ import org.slf4j.LoggerFactory;
 public class DQLPlanService extends PlanService {
 	private static final Logger log = LoggerFactory.getLogger(DQLPlanService.class);
 
+	private Map<Task.Type, ITaskAssigner> assignerMap;
+
 	@Override
 	protected void doPlan(ScheduleNode node, String connectionId) throws SQLException {
 		String conPath = TaskInfoPath.META_SERVER_SQLPLAN_PATH + "/" + connectionId;
 		try {
 			createNode(conPath, connectionId.getBytes(), null, CreateMode.PERSISTENT);
-			this.planTask(conPath, node, connectionId);
+			ITaskWatcher watcher = this.planTask(conPath, node, connectionId);
 			createNode(conPath + "/" + TaskInfoPath.META_TASK_TYPE_PATH, PlanType.DQL.getValue().getBytes(), null, CreateMode.PERSISTENT);
 			createNode(conPath + "/" + TaskInfoPath.META_TASK_STATUS_PATH, TaskStatus.PLANNED.getValue().getBytes(), null, CreateMode.PERSISTENT);
+			watcher.start();
 		} catch (Throwable e) {
 			deleteNode(conPath);
 		}
@@ -56,31 +65,25 @@ public class DQLPlanService extends PlanService {
 	 * 
 	 * @return
 	 */
-	private void planTask(String parentPath, ScheduleNode node, String connectionId) throws SQLException {
+	private ITaskWatcher planTask(String parentPath, ScheduleNode node, String connectionId) throws SQLException {
 		switch (node.getNodeType()) {
 		case SCAN: {
-			this.buildScanTask(parentPath, (ScanNode) node, connectionId);
-			break;
+			return this.buildScanTask(parentPath, (ScanNode) node, connectionId);
 		}
 		case LIMIT: {
-			this.buildLimitTask(parentPath, (LimitNode) node, connectionId);
-			break;
+			return this.buildLimitTask(parentPath, (LimitNode) node, connectionId);
 		}
 		case SORT: {
-			this.buildSortTask(parentPath, (SortNode) node, connectionId);
-			break;
+			return this.buildSortTask(parentPath, (SortNode) node, connectionId);
 		}
 		case HAVING: {
-			this.buildHavingTask(parentPath, node, connectionId);
-			break;
+			return this.buildHavingTask(parentPath, node, connectionId);
 		}
 		case AGGREGATE: {
-			this.buildAggregateTask(parentPath, node, connectionId);
-			break;
+			return this.buildAggregateTask(parentPath, node, connectionId);
 		}
 		case JOIN: {
-			this.buildJoinTask(parentPath, (JoinNode) node, connectionId);
-			break;
+			return this.buildJoinTask(parentPath, (JoinNode) node, connectionId);
 		}
 		default: {
 			log.error("there is undefined task in connectionId[" + connectionId + "]");
@@ -106,8 +109,12 @@ public class DQLPlanService extends PlanService {
 		task.isGlobal = node.isGlobal();
 		task.tables = node.getTables();
 		byte[] taskData = ObjectUtils.write(task);
-		createNode(parentPath + "/task-", taskData, null, CreateMode.PERSISTENT_SEQUENTIAL);
-		return null;
+		String taskPath = createNode(parentPath + "/task-", taskData, null, CreateMode.PERSISTENT_SEQUENTIAL);
+
+		DQLPlanWatcher watcher = new DQLPlanWatcher(zkHost, assignerMap);
+		watcher.setTask(task);
+		watcher.setTaskPath(taskPath);
+		return watcher;
 	}
 
 	/*
@@ -128,8 +135,15 @@ public class DQLPlanService extends PlanService {
 		byte[] taskData = ObjectUtils.write(task);
 		String path = parentPath + "/task-";
 		String realPath = createNode(path, taskData, null, CreateMode.PERSISTENT_SEQUENTIAL);
-		this.planTask(realPath, node.getSrcNodes().get(0), connectionId);
-		return null;
+		DQLPlanWatcher watcher = new DQLPlanWatcher(zkHost, assignerMap);
+		watcher.setTask(task);
+		watcher.setTaskPath(realPath);
+
+		ITaskWatcher childWatcher = this.planTask(realPath, node.getSrcNodes().get(0), connectionId);
+		watcher.addChild(childWatcher);
+		childWatcher.setParent(watcher);
+		return watcher;
+
 	}
 
 	/*
@@ -149,9 +163,14 @@ public class DQLPlanService extends PlanService {
 		byte[] taskData = ObjectUtils.write(task);
 		String path = parentPath + "/task-";
 		String realPath = createNode(path, taskData, null, CreateMode.PERSISTENT_SEQUENTIAL);
-		this.planTask(realPath, node.getSrcNodes().get(0), connectionId);
+		DQLPlanWatcher watcher = new DQLPlanWatcher(zkHost, assignerMap);
+		watcher.setTask(task);
+		watcher.setTaskPath(realPath);
 
-		return null;
+		ITaskWatcher childWatcher = this.planTask(realPath, node.getSrcNodes().get(0), connectionId);
+		watcher.addChild(childWatcher);
+		childWatcher.setParent(watcher);
+		return watcher;
 	}
 
 	/*
@@ -178,9 +197,14 @@ public class DQLPlanService extends PlanService {
 		byte[] taskData = ObjectUtils.write(task);
 		String path = parentPath + "/task-";
 		String realPath = createNode(path, taskData, null, CreateMode.PERSISTENT_SEQUENTIAL);
-		this.planTask(realPath, node.getSrcNodes().get(0), connectionId);
+		DQLPlanWatcher watcher = new DQLPlanWatcher(zkHost, assignerMap);
+		watcher.setTask(task);
+		watcher.setTaskPath(realPath);
 
-		return null;
+		ITaskWatcher childWatcher = this.planTask(realPath, node.getSrcNodes().get(0), connectionId);
+		watcher.addChild(childWatcher);
+		childWatcher.setParent(watcher);
+		return watcher;
 	}
 
 	/*
@@ -208,9 +232,14 @@ public class DQLPlanService extends PlanService {
 		byte[] taskData = ObjectUtils.write(task);
 		String path = parentPath + "/task-";
 		String realPath = createNode(path, taskData, null, CreateMode.PERSISTENT_SEQUENTIAL);
-		this.planTask(realPath, node.getSrcNodes().get(0), connectionId);
+		DQLPlanWatcher watcher = new DQLPlanWatcher(zkHost, assignerMap);
+		watcher.setTask(task);
+		watcher.setTaskPath(realPath);
 
-		return null;
+		ITaskWatcher childWatcher = this.planTask(realPath, node.getSrcNodes().get(0), connectionId);
+		watcher.addChild(childWatcher);
+		childWatcher.setParent(watcher);
+		return watcher;
 	}
 
 	/*
@@ -230,8 +259,25 @@ public class DQLPlanService extends PlanService {
 		byte[] taskData = ObjectUtils.write(task);
 		String path = parentPath + "/task-";
 		String realPath = createNode(path, taskData, null, CreateMode.PERSISTENT_SEQUENTIAL);
-		this.planTask(realPath, node.getSrcNodes().get(0), connectionId);
+		DQLPlanWatcher watcher = new DQLPlanWatcher(zkHost, assignerMap);
+		watcher.setTask(task);
+		watcher.setTaskPath(realPath);
 
-		return null;
+		List<ScheduleNode> srces = node.getSrcNodes();
+		for(ScheduleNode tmp:srces){
+			ITaskWatcher childWatcher = this.planTask(realPath, tmp, connectionId);
+			watcher.addChild(childWatcher);
+			childWatcher.setParent(watcher);
+		}
+
+		return watcher;
+	}
+
+	public Map<Task.Type, ITaskAssigner> getAssignerMap() {
+		return assignerMap;
+	}
+
+	public void setAssignerMap(Map<Task.Type, ITaskAssigner> assignerMap) {
+		this.assignerMap = assignerMap;
 	}
 }

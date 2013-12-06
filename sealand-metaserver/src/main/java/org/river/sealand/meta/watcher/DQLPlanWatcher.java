@@ -229,4 +229,12 @@ public class DQLPlanWatcher implements Watcher, ITaskWatcher, Runnable {
 		this.atom.notifyAll();
 	}
 
+	public void setTask(Task task) {
+		this.task = task;
+	}
+
+	public void setTaskPath(String taskPath) {
+		this.taskPath = taskPath;
+	}
+
 }
