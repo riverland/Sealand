@@ -9,12 +9,15 @@ import java.util.List;
  * @author river
  * @since Dec 1, 2013
  */
-public class AggregateTask extends Task {
+public class HavingTask extends Task {
 
 	private static final long serialVersionUID = 8265223529827605349L;
 
 	/**分组*/
 	public String groupBy;
+	
+	/**过滤*/
+	public String havings;
 	
 	/**分组表达式*/
 	public List<String> aggregates;
@@ -27,6 +30,6 @@ public class AggregateTask extends Task {
 
 	@Override
 	public Type getType() {
-		return Type.AGGREGATE;
+		return Type.HAVING;
 	}
 }

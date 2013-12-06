@@ -28,7 +28,7 @@ public abstract class Task implements Serializable {
 	public abstract Type getType();
 
 	public static enum Type {
-		SCAN("S"), TRANSFER("T"), JOIN("J"), SORT("O"), LIMIT("L"), AGGREGATE("A");
+		SCAN("S"), TRANSFER("T"), JOIN("J"), SORT("O"), LIMIT("L"), AGGREGATE("A"),HAVING("H");
 		
 		private String value;
 

@@ -18,11 +18,20 @@ public interface IMetaNodeInfoService {
 	 * @param svrNode
 	 */
 	public void register(Server svrNode);
-	
+
 	/**
 	 * <p>
 	 * 获取已经注册的节点
+	 * 
 	 * @return
 	 */
 	public List<Server> getRegisteredNodes();
+
+	/**
+	 * <p>
+	 * 获取最近最少资源消耗的节点地址
+	 * 
+	 * @return
+	 */
+	public String getLRUNode();
 }

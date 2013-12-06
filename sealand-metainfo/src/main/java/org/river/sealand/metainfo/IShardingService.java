@@ -1,6 +1,5 @@
 package org.river.sealand.metainfo;
 
-import java.util.Set;
 
 /**
  * <p>

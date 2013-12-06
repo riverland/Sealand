@@ -64,10 +64,10 @@ public abstract class PlanService implements IPlanService, Watcher {
 	 * @param createMode
 	 * @throws SQLException
 	 */
-	protected void createNode(final String path, byte data[], List<ACL> acl, CreateMode createMode) throws SQLException {
+	protected String createNode(final String path, byte data[], List<ACL> acl, CreateMode createMode) throws SQLException {
 		
 		try {
-			zooKeeper.get().create(path, data, acl, createMode);
+			return zooKeeper.get().create(path, data, acl, createMode);
 		} catch (Exception e) {
 			log.error(e.getMessage(), e);
 			throw new SQLException("");

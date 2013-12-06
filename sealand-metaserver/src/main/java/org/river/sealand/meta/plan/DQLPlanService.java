@@ -2,6 +2,7 @@ package org.river.sealand.meta.plan;
 
 import org.apache.zookeeper.CreateMode;
 import org.river.sealand.metainfo.task.AggregateTask;
+import org.river.sealand.metainfo.task.HavingTask;
 import org.river.sealand.metainfo.task.JoinTask;
 import org.river.sealand.metainfo.task.LimitTask;
 import org.river.sealand.metainfo.task.ScanTask;
@@ -33,18 +34,14 @@ import org.slf4j.LoggerFactory;
 public class DQLPlanService extends PlanService {
 	private static final Logger log = LoggerFactory.getLogger(DQLPlanService.class);
 
-	/** DQL在zookeeper中的地址空间 */
-	private String dqlPlanNameSpace;
-	private String pendingNumPath;
-
 	@Override
 	protected void doPlan(ScheduleNode node, String connectionId) throws SQLException {
-		String conPath = dqlPlanNameSpace + "/" + connectionId;
+		String conPath = TaskInfoPath.META_SERVER_SQLPLAN_PATH + "/" + connectionId;
 		try {
 			createNode(conPath, connectionId.getBytes(), null, CreateMode.PERSISTENT);
 			this.planTask(conPath, node, connectionId);
-			createNode(conPath+"/"+TaskInfoPath.META_TASK_TYPE_PATH, PlanType.DQL.getValue().getBytes(), null, CreateMode.PERSISTENT);
-			createNode(conPath+"/"+TaskInfoPath.META_TASK_STATUS_PATH, TaskStatus.PLANNED.getValue().getBytes(), null, CreateMode.PERSISTENT);			
+			createNode(conPath + "/" + TaskInfoPath.META_TASK_TYPE_PATH, PlanType.DQL.getValue().getBytes(), null, CreateMode.PERSISTENT);
+			createNode(conPath + "/" + TaskInfoPath.META_TASK_STATUS_PATH, TaskStatus.PLANNED.getValue().getBytes(), null, CreateMode.PERSISTENT);
 		} catch (Throwable e) {
 			deleteNode(conPath);
 		}
@@ -72,7 +69,10 @@ public class DQLPlanService extends PlanService {
 			this.buildSortTask(parentPath, (SortNode) node, connectionId);
 			break;
 		}
-		case HAVING:
+		case HAVING:{
+			this.buildHavingTask(parentPath, node, connectionId);
+			break;
+		}
 		case AGGREGATE: {
 			this.buildAggregateTask(parentPath, node, connectionId);
 			break;
@@ -101,11 +101,11 @@ public class DQLPlanService extends PlanService {
 		task.sql = node.getSql();
 		task.taskId = TaskUtils.genTaskId();
 		task.dataId = node.getAlias();
-		task.resultFields=node.getFields();
-		task.isGlobal=node.isGlobal();
-		task.tables=node.getTables();
-		byte[] taskData=ObjectUtils.write(task);
-		createNode(parentPath+"/"+task.taskId, taskData, null, CreateMode.PERSISTENT);
+		task.resultFields = node.getFields();
+		task.isGlobal = node.isGlobal();
+		task.tables = node.getTables();
+		byte[] taskData = ObjectUtils.write(task);
+		createNode(parentPath + "/task-", taskData, null, CreateMode.PERSISTENT_SEQUENTIAL);
 	}
 
 	/*
@@ -116,18 +116,18 @@ public class DQLPlanService extends PlanService {
 	 * @return
 	 */
 	private void buildLimitTask(String parentPath, LimitNode node, String connectionId) throws SQLException {
-		LimitTask task=new LimitTask();
-		task.start=node.getStart();
-		task.offset=node.getOffset();
+		LimitTask task = new LimitTask();
+		task.start = node.getStart();
+		task.offset = node.getOffset();
 		task.taskId = TaskUtils.genTaskId();
 		task.dataId = node.getAlias();
-		task.resultFields=node.getFields();
-		
-		byte[] taskData=ObjectUtils.write(task);
-		String path=parentPath+"/"+task.taskId;
-		createNode(path, taskData, null, CreateMode.PERSISTENT);
-		this.planTask(path, node.getSrcNodes().get(0), connectionId);
-		
+		task.resultFields = node.getFields();
+
+		byte[] taskData = ObjectUtils.write(task);
+		String path = parentPath + "/task-";
+		String realPath = createNode(path, taskData, null, CreateMode.PERSISTENT_SEQUENTIAL);
+		this.planTask(realPath, node.getSrcNodes().get(0), connectionId);
+
 	}
 
 	/*
@@ -138,16 +138,16 @@ public class DQLPlanService extends PlanService {
 	 * @return
 	 */
 	private void buildSortTask(String parentPath, SortNode node, String connectionId) throws SQLException {
-		SortTask task=new SortTask();
-		task.orderBy=node.getSorts();
+		SortTask task = new SortTask();
+		task.orderBy = node.getSorts();
 		task.taskId = TaskUtils.genTaskId();
 		task.dataId = node.getAlias();
-		task.resultFields=node.getFields();
-		
-		byte[] taskData=ObjectUtils.write(task);
-		String path=parentPath+"/"+task.taskId;
-		createNode(path, taskData, null, CreateMode.PERSISTENT);
-		this.planTask(path, node.getSrcNodes().get(0), connectionId);
+		task.resultFields = node.getFields();
+
+		byte[] taskData = ObjectUtils.write(task);
+		String path = parentPath + "/task-";
+		String realPath = createNode(path, taskData, null, CreateMode.PERSISTENT_SEQUENTIAL);
+		this.planTask(realPath, node.getSrcNodes().get(0), connectionId);
 	}
 
 	/*
@@ -158,26 +158,52 @@ public class DQLPlanService extends PlanService {
 	 * @return
 	 */
 	private void buildAggregateTask(String parentPath, ScheduleNode node, String connectionId) throws SQLException {
-		AggregateTask task=new AggregateTask();
-		if(node.getNodeType()==NodeType.HAVING){
-			task.havings=((HavingNode)node).getHavings();
-			node=node.getSrcNodes().get(0);
+		AggregateTask task = new AggregateTask();
+		if (node.getNodeType() == NodeType.HAVING) {
+			node = node.getSrcNodes().get(0);
 		}
-		
-		if(node.getNodeType()==NodeType.AGGREGATE){
-			task.groupBy=SQLUtils.buildSelectList(((AggregateNode)node).getGroupBy());
+
+		if (node.getNodeType() == NodeType.AGGREGATE) {
+			task.groupBy = SQLUtils.buildSelectList(((AggregateNode) node).getGroupBy());
 		}
-			
+
 		task.taskId = TaskUtils.genTaskId();
 		task.dataId = node.getAlias();
-		task.resultFields=node.getFields();
-		
-		byte[] taskData=ObjectUtils.write(task);
-		String path=parentPath+"/"+task.taskId;
-		createNode(path, taskData, null, CreateMode.PERSISTENT);
-		this.planTask(path, node.getSrcNodes().get(0), connectionId);
+		task.resultFields = node.getFields();
+
+		byte[] taskData = ObjectUtils.write(task);
+		String path = parentPath + "/task-";
+		String realPath = createNode(path, taskData, null, CreateMode.PERSISTENT_SEQUENTIAL);
+		this.planTask(realPath, node.getSrcNodes().get(0), connectionId);
 	}
 	
+	/*
+	 * having任务
+	 * 
+	 * @param node
+	 * 
+	 * @return
+	 */
+	private void buildHavingTask(String parentPath, ScheduleNode node, String connectionId) throws SQLException {
+		HavingTask task = new HavingTask();
+		if (node.getNodeType() == NodeType.HAVING) {
+			task.havings = ((HavingNode) node).getHavings();
+			node = node.getSrcNodes().get(0);
+		}
+
+		if (node.getNodeType() == NodeType.AGGREGATE) {
+			task.groupBy = SQLUtils.buildSelectList(((AggregateNode) node).getGroupBy());
+		}
+
+		task.taskId = TaskUtils.genTaskId();
+		task.dataId = node.getAlias();
+		task.resultFields = node.getFields();
+
+		byte[] taskData = ObjectUtils.write(task);
+		String path = parentPath + "/task-";
+		String realPath = createNode(path, taskData, null, CreateMode.PERSISTENT_SEQUENTIAL);
+		this.planTask(realPath, node.getSrcNodes().get(0), connectionId);
+	}
 
 	/*
 	 * 连接任务
@@ -187,16 +213,15 @@ public class DQLPlanService extends PlanService {
 	 * @return
 	 */
 	private void buildJoinTask(String parentPath, JoinNode node, String connectionId) throws SQLException {
-		JoinTask task=new JoinTask();
-		task.on=node.getOn();
+		JoinTask task = new JoinTask();
+		task.on = node.getOn();
 		task.taskId = TaskUtils.genTaskId();
 		task.dataId = node.getAlias();
-		task.resultFields=node.getFields();
-		
-		byte[] taskData=ObjectUtils.write(task);
-		String path=parentPath+"/"+task.taskId;
-		createNode(path, taskData, null, CreateMode.PERSISTENT);
-		
-		this.planTask(path, node.getSrcNodes().get(0), connectionId);
+		task.resultFields = node.getFields();
+
+		byte[] taskData = ObjectUtils.write(task);
+		String path = parentPath + "/task-";
+		String realPath = createNode(path, taskData, null, CreateMode.PERSISTENT_SEQUENTIAL);
+		this.planTask(realPath, node.getSrcNodes().get(0), connectionId);
 	}
 }
