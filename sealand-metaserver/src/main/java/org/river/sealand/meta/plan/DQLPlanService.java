@@ -43,8 +43,8 @@ public class DQLPlanService extends PlanService {
 		try {
 			createNode(conPath, connectionId.getBytes(), null, CreateMode.PERSISTENT);
 			this.planTask(conPath, node, connectionId);
-			createNode(conPath+"/"+TaskInfoPath.TASK_TYPE_FOR_META_PATH, PlanType.DQL.getValue().getBytes(), null, CreateMode.PERSISTENT);
-			createNode(conPath+"/"+TaskInfoPath.TASK_STATUS_FOR_META_PATH, TaskStatus.PLANNED.getValue().getBytes(), null, CreateMode.PERSISTENT);			
+			createNode(conPath+"/"+TaskInfoPath.META_TASK_TYPE_PATH, PlanType.DQL.getValue().getBytes(), null, CreateMode.PERSISTENT);
+			createNode(conPath+"/"+TaskInfoPath.META_TASK_STATUS_PATH, TaskStatus.PLANNED.getValue().getBytes(), null, CreateMode.PERSISTENT);			
 		} catch (Throwable e) {
 			deleteNode(conPath);
 		}

@@ -3,6 +3,7 @@ package org.river.sealand.meta.watcher;
 import java.io.IOException;
 
 import org.river.sealand.metainfo.task.Task;
+import org.river.sealand.utils.SQLException;
 
 /**
  * <p>
@@ -30,8 +31,9 @@ public interface ITaskWatcher {
 	 * <p>
 	 * 分派任务到计算节点为可执行的任务
 	 * @param task
+	 * @throws SQLException 
 	 */
-	public void assign(Task task);
+	public void assign(Task task) throws SQLException;
 	
 	/**
 	 * <p>

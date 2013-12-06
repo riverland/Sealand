@@ -1,7 +1,9 @@
 package org.river.sealand.meta.watcher;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 
 import org.apache.zookeeper.KeeperException;
@@ -11,9 +13,11 @@ import org.apache.zookeeper.Watcher.Event.EventType;
 import org.apache.zookeeper.Watcher.Event.KeeperState;
 import org.apache.zookeeper.ZooKeeper;
 import org.apache.zookeeper.ZooKeeper.States;
+import org.apache.zookeeper.data.Stat;
 import org.river.sealand.meta.plan.TaskInfoPath;
 import org.river.sealand.metainfo.task.Task;
 import org.river.sealand.metainfo.task.TaskStatus;
+import org.river.sealand.utils.SQLException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -37,7 +41,8 @@ public class DQLPlanWatcher implements Watcher, ITaskWatcher, Runnable {
 	private boolean alive = true;
 	private CountDownLatch latch = new CountDownLatch(1);
 	private Object atom = new Object();
-
+	private Map<Task.Type,ITaskAssigner> assignerMap=new HashMap<Task.Type,ITaskAssigner>();
+	
 	/**
 	 * <p>
 	 * 任务监控初始化
@@ -58,7 +63,7 @@ public class DQLPlanWatcher implements Watcher, ITaskWatcher, Runnable {
 			try {
 				synchronized (atom) {
 					atom.wait();
-					TaskStatus status=this.getTaskStatus();
+					TaskStatus status=this.updateStatus();
 					if(status==TaskStatus.TO_ASSIGN){
 						this.assign(task);
 					}else if(status==TaskStatus.COMMPLETED){
@@ -70,6 +75,34 @@ public class DQLPlanWatcher implements Watcher, ITaskWatcher, Runnable {
 			}
 		}
 	}
+	
+	/*
+	 * 检查更新当前任务状态 
+	 * @return
+	 */
+	private TaskStatus updateStatus() throws Exception{
+		if(this.getPendingNum()>0){
+			return this.getTaskStatus();
+		}
+		
+
+		final String path = this.taskPath + "/" + TaskInfoPath.META_TASK_STATUS_PATH;
+		
+		Stat stat=zooKeeper.exists(path, false);
+		zooKeeper.setData(path, TaskStatus.COMMPLETED.getValue().getBytes(), stat.getVersion());
+		
+		return TaskStatus.COMMPLETED;
+	}
+	
+	/*
+	 * 获取执行中的子任务数量 
+	 * @return
+	 */
+	private int getPendingNum() throws KeeperException, InterruptedException{
+		final String path = this.taskPath + "/" + TaskInfoPath.META_PENDING_NUM_PATH;
+		byte[] data=zooKeeper.getData(path, null, null);
+		return Integer.valueOf(new String(data));
+	}
 
 	/*
 	 * 获取任务状态
@@ -77,7 +110,7 @@ public class DQLPlanWatcher implements Watcher, ITaskWatcher, Runnable {
 	 * @return
 	 */
 	private TaskStatus getTaskStatus() throws Exception {
-		final String path = this.taskPath + "/" + TaskInfoPath.TASK_STATUS_FOR_META_PATH;
+		final String path = this.taskPath + "/" + TaskInfoPath.META_TASK_STATUS_PATH;
 		byte[] data = this.zooKeeper.getData(path, null, null);
 		String status=new String(data);
 		return TaskStatus.fromValue(status);
@@ -149,8 +182,9 @@ public class DQLPlanWatcher implements Watcher, ITaskWatcher, Runnable {
 	}
 
 	@Override
-	public void assign(Task task) {
-
+	public void assign(Task task) throws SQLException {
+		ITaskAssigner assigner=this.assignerMap.get(task.getType());
+		assigner.assign(task, taskPath);
 	}
 
 	@Override
@@ -158,6 +192,26 @@ public class DQLPlanWatcher implements Watcher, ITaskWatcher, Runnable {
 		if (parent != null) {
 			parent.atom.notify();
 		}
+	}
+	
+	public List<DQLPlanWatcher> getChildren() {
+		return children;
+	}
+
+	public void setChildren(List<DQLPlanWatcher> children) {
+		this.children = children;
+	}
+	
+	public String getZkHost() {
+		return zkHost;
+	}
+
+	public void setZkHost(String zkHost) {
+		this.zkHost = zkHost;
+	}
+
+	public void setParent(DQLPlanWatcher parent) {
+		this.parent = parent;
 	}
 
 }
