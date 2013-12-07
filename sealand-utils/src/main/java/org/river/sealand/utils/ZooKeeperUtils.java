@@ -2,10 +2,11 @@ package org.river.sealand.utils;
 
 import java.util.concurrent.CountDownLatch;
 
+import org.apache.commons.lang.math.NumberUtils;
 import org.apache.zookeeper.WatchedEvent;
 import org.apache.zookeeper.Watcher;
-import org.apache.zookeeper.ZooKeeper;
 import org.apache.zookeeper.Watcher.Event.KeeperState;
+import org.apache.zookeeper.ZooKeeper;
 import org.apache.zookeeper.data.Stat;
 
 /**
@@ -47,10 +48,15 @@ public class ZooKeeperUtils {
 	 * @param zk
 	 * @param path
 	 * @return
+	 * @throws Exception 
 	 */
-	public static int getInt(ZooKeeper zk,String path,Stat stat){
-		//TODO implements
-		return 0;
+	public static int getInt(ZooKeeper zk,String path,Stat stat) throws Exception{
+		byte []data=zk.getData(path, null, stat);
+		String dataStr=new String(data);
+		if(NumberUtils.isNumber(dataStr)){
+			throw new Exception("["+dataStr+"] is not number");
+		}
+		return Integer.valueOf(dataStr);
 	}
 	
 	/**
@@ -59,10 +65,15 @@ public class ZooKeeperUtils {
 	 * @param zk
 	 * @param path
 	 * @return
+	 * @throws Exception 
 	 */
-	public static int getDouble(ZooKeeper zk,String path,Stat stat){
-		//TODO implements
-		return 0;
+	public static double getDouble(ZooKeeper zk,String path,Stat stat) throws Exception{
+		byte []data=zk.getData(path, null, stat);
+		String dataStr=new String(data);
+		if(NumberUtils.isNumber(dataStr)){
+			throw new Exception("["+dataStr+"] is not number");
+		}
+		return Double.valueOf(dataStr);
 	}
 	
 	/**
@@ -72,10 +83,11 @@ public class ZooKeeperUtils {
 	 * @param path
 	 * @param stat
 	 * @return
+	 * @throws Exception 
 	 */
-	public static Object getObject(ZooKeeper zk,String path,Stat stat){
-		//TODO implements
-		return null;
+	public static Object getObject(ZooKeeper zk,String path,Stat stat) throws Exception{
+		byte []data=zk.getData(path, null, stat);
+		return ObjectUtils.read(data);
 	}
 
 }
