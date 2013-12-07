@@ -8,5 +8,23 @@ import java.sql.ResultSet;
  * @since  Dec 6, 2013
  */
 public interface DataSet extends ResultSet {
+	/**
+	 * <p>
+	 * 数据集记录数
+	 */
+	public int count();
 	
+	/**
+	 * <p>
+	 * 加载数据集
+	 */
+	public void load();
+	
+	/**
+	 * <p>
+	 * 获取子集
+	 * @param start
+	 * @param offset
+	 */
+	public DataSet subset(int start,int offset);
 }

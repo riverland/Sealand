@@ -7,11 +7,9 @@ import java.net.URL;
 import java.sql.Array;
 import java.sql.Blob;
 import java.sql.Clob;
-import java.sql.Connection;
 import java.sql.Date;
 import java.sql.NClob;
 import java.sql.Ref;
-import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.RowId;
 import java.sql.SQLException;
@@ -23,29 +21,14 @@ import java.sql.Timestamp;
 import java.util.Calendar;
 import java.util.Map;
 
-import org.river.sealand.utils.CloseUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 /**
  * <p>
- * 数据库扫描结果集 TODO finish the implement
- * 
+ * 排序之后的数据集
+ * TODO implement
  * @author river
- * @since Dec 7, 2013
+ * @since  Dec 7, 2013
  */
-public class ScanDataSet implements DataSet {
-	private static Logger LOG = LoggerFactory.getLogger(ScanDataSet.class);
-
-	private Connection con;
-	private String sql;
-	private Statement stmt;
-	private ResultSet resultSet;
-
-	public ScanDataSet(Connection con, String sql) {
-		this.con = con;
-		this.sql = sql;
-	}
+public class SortDataSet implements DataSet {
 
 	@Override
 	public boolean next() throws SQLException {
@@ -1195,34 +1178,19 @@ public class ScanDataSet implements DataSet {
 
 	@Override
 	public int count() {
-		String countSql = "select count(*) from " + sql;
-		ResultSet rs = null;
-		Statement stmt = null;
-		try {
-			stmt = this.con.createStatement();
-			rs = stmt.executeQuery(countSql);
-			return rs.getInt(1);
-		} catch (Throwable e) {
-
-		} finally {
-			CloseUtils.close(rs);
-			CloseUtils.close(stmt);
-		}
+		// TODO Auto-generated method stub
 		return 0;
 	}
 
 	@Override
 	public void load() {
-		try {
-			this.stmt = con.createStatement();
-			this.resultSet = stmt.executeQuery(sql);
-		} catch (Exception e) {
-			LOG.error(e.getLocalizedMessage());
-		}
+		// TODO Auto-generated method stub
+
 	}
 
 	@Override
 	public DataSet subset(int start, int offset) {
+		// TODO Auto-generated method stub
 		return null;
 	}
 

@@ -21,4 +21,11 @@ public interface IDataManager {
 	 * @param dataSet
 	 */
 	public void putDataSet(String dataId,DataSet dataSet);
+	
+	/**
+	 * <p>
+	 * 删除数据集
+	 * @param dataId
+	 */
+	public void remove(String dataId);
 }

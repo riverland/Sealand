@@ -21,6 +21,9 @@ public abstract class Task implements Serializable {
 
 	/** 数据ID */
 	public String dataId;
+	
+	/**数据源ID列表*/
+	public List<String> srcDataIds;
 
 	/** 返回列:格式dataId#列位 */
 	public List<String> resultFields;

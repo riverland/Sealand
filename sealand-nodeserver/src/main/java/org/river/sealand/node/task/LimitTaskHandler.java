@@ -1,42 +1,38 @@
 package org.river.sealand.node.task;
 
-import java.sql.Connection;
-
-import javax.sql.DataSource;
-
 import org.apache.zookeeper.ZooKeeper;
 import org.river.base.threads.type.DataEntity;
-import org.river.sealand.metainfo.task.ScanTask;
+import org.river.sealand.metainfo.task.LimitTask;
+import org.river.sealand.metainfo.task.SortTask;
 import org.river.sealand.metainfo.task.Task;
-import org.river.sealand.node.data.ScanDataSet;
+import org.river.sealand.node.data.DataSet;
 import org.river.sealand.utils.ZooKeeperUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
  * <p>
- * sql执行节点处理器
+ * 分页任务执行节点处理器
  * 
  * @author river
- * @since Dec 1, 2013
+ * @since Dec 7, 2013
+ * @param <Task>
  */
-public class SQLScanTaskHandler extends TaskHandler<Task> {
+public class LimitTaskHandler extends TaskHandler<Task> {
 
-	private static Logger LOG = LoggerFactory.getLogger(SQLScanTaskHandler.class);
-	protected DataSource dataSource;
+	private static Logger LOG = LoggerFactory.getLogger(LimitTaskHandler.class);
 
 	@Override
 	public void handle(DataEntity<Task> data) {
 		if (!this.needHandle(data)) {
 			return;
 		}
+
 		ZooKeeper zk = null;
-		ScanTask task = (ScanTask) data.getData();
+		LimitTask task = (LimitTask) data.getData();
 		try {
 			zk = ZooKeeperUtils.getZooKeeper(zkHost, timeout);
-			Connection con = dataSource.getConnection();
-			String sql = task.sql;
-			ScanDataSet dataSet = new ScanDataSet(con, sql);
+			DataSet dataSet = this.limit(task);
 			this.dataManager.putDataSet(task.connectionId + "-" + task.dataId, dataSet);
 			int localRecNum = dataSet.count();
 			while (this.updateRecNum(zk, task, localRecNum) == -1) {
@@ -55,23 +51,32 @@ public class SQLScanTaskHandler extends TaskHandler<Task> {
 		data.setData(null);
 	}
 
+	/*
+	 * 执行分页操作
+	 * 
+	 * @param task
+	 * 
+	 * @return
+	 */
+	private DataSet limit(Task task) {
+		String srcDataId = task.srcDataIds.get(0);
+		DataSet all = this.dataManager.getDataSet(task.connectionId + "-" + srcDataId);
+
+		LimitTask limitTask = (LimitTask) task;
+		DataSet limit = all.subset(limitTask.start, limitTask.offset);
+		this.dataManager.remove(srcDataId);
+		return limit;
+	}
+
 	@Override
 	public Class<?> getDataType() {
-		return ScanTask.class;
+		return SortTask.class;
 	}
 
 	@Override
 	protected boolean needHandle(DataEntity<Task> data) {
 		Task task = data.getData();
-		return task.getType() == Task.Type.SCAN;
-	}
-
-	public DataSource getDataSource() {
-		return dataSource;
-	}
-
-	public void setDataSource(DataSource dataSource) {
-		this.dataSource = dataSource;
+		return task.getType() == Task.Type.LIMIT;
 	}
 
 }
