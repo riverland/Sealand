@@ -24,6 +24,12 @@ public abstract class Task implements Serializable {
 
 	/** 返回列:格式dataId#列位 */
 	public List<String> resultFields;
+	
+	/**目标任务地址*/
+	public String destTaskPath;
+	
+	/**当前任务地址*/
+	public String taskPath;
 
 	public abstract Type getType();
 

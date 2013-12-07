@@ -6,6 +6,7 @@ import org.apache.zookeeper.WatchedEvent;
 import org.apache.zookeeper.Watcher;
 import org.apache.zookeeper.ZooKeeper;
 import org.apache.zookeeper.Watcher.Event.KeeperState;
+import org.apache.zookeeper.data.Stat;
 
 /**
  * <p>
@@ -38,6 +39,43 @@ public class ZooKeeperUtils {
 
 		latch.await();
 		return zooKeeper;
+	}
+	
+	/**
+	 * <p>
+	 * 从指定地址获取整型数据
+	 * @param zk
+	 * @param path
+	 * @return
+	 */
+	public static int getInt(ZooKeeper zk,String path,Stat stat){
+		//TODO implements
+		return 0;
+	}
+	
+	/**
+	 * <p>
+	 * 从指定地址获取浮点型数据
+	 * @param zk
+	 * @param path
+	 * @return
+	 */
+	public static int getDouble(ZooKeeper zk,String path,Stat stat){
+		//TODO implements
+		return 0;
+	}
+	
+	/**
+	 * <p>
+	 * 从指定地址获取序列化对象
+	 * @param zk
+	 * @param path
+	 * @param stat
+	 * @return
+	 */
+	public static Object getObject(ZooKeeper zk,String path,Stat stat){
+		//TODO implements
+		return null;
 	}
 
 }
