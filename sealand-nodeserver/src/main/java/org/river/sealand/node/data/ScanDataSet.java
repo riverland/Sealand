@@ -21,6 +21,7 @@ import java.sql.Statement;
 import java.sql.Time;
 import java.sql.Timestamp;
 import java.util.Calendar;
+import java.util.List;
 import java.util.Map;
 
 import org.river.sealand.utils.CloseUtils;
@@ -1223,6 +1224,54 @@ public class ScanDataSet implements DataSet {
 
 	@Override
 	public DataSet subset(int start, int offset) {
+		return null;
+	}
+
+	@Override
+	public void addRecord(String rec) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void addAll(List<String> recs) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public String getAlias() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public DataType getDataType(String label) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public DataType getDataType(int colIndex) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public List<String> allColLables() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public String getRecord(int i) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public String getRecord() {
+		// TODO Auto-generated method stub
 		return null;
 	}
 

@@ -32,6 +32,12 @@ import java.util.Map;
  */
 public class MemDataSet implements DataSet {
 	List<String> data = new ArrayList<String>();
+	List<String> lables = new ArrayList<String>();
+
+	
+	public MemDataSet(List<String> lables) {
+		this.lables = lables;
+	}
 
 	@Override
 	public boolean next() throws SQLException {
@@ -1193,6 +1199,54 @@ public class MemDataSet implements DataSet {
 
 	@Override
 	public DataSet subset(int start, int offset) {
+		return null;
+	}
+
+	@Override
+	public void addRecord(String rec) {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public void addAll(List<String> recs) {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public String getAlias() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public DataType getDataType(String label) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public DataType getDataType(int colIndex) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public List<String> allColLables() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public String getRecord(int i) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public String getRecord() {
+		// TODO Auto-generated method stub
 		return null;
 	}
 
