@@ -20,14 +20,14 @@ import org.slf4j.LoggerFactory;
 
 /**
  * <p>
- * Join执行节点处理器
+ * Having执行节点处理器
  * 
  * @author river
  * @since Dec 1, 2013
  */
-public class JoinTaskHandler extends TaskHandler<Task> {
+public class HaveTaskHandler extends TaskHandler<Task> {
 
-	private static Logger LOG = LoggerFactory.getLogger(JoinTaskHandler.class);
+	private static Logger LOG = LoggerFactory.getLogger(HaveTaskHandler.class);
 	protected DataSource dataSource;
 	protected IJoinAlgorithm algorithm;
 

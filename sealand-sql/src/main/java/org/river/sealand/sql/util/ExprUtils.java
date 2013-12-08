@@ -49,6 +49,13 @@ public class ExprUtils {
 		return allSqlId(exprNode, sqlParser);
 	}
 
+	/**
+	 * <p>
+	 * 获取所有的sqlID
+	 * @param node
+	 * @param parser
+	 * @return
+	 */
 	public static Set<String> allSqlId(ParseTree node, Parser parser) {
 		Set<String> vals = new HashSet<String>();
 		Rule rule = AntlrTreeUtils.getRule(node, parser);

@@ -23,4 +23,14 @@ public class ExprExcutor {
 		Object result = fel.eval(expr);
 		return result;
 	}
+	
+	/**
+	 * <p>
+	 * 把sql表达式转换为java表达式
+	 * @param expr
+	 * @return
+	 */
+	public static String fixBoolExpr(String expr){
+		return "";
+	}
 }

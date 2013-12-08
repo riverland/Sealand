@@ -27,7 +27,7 @@ public interface IDataManager {
 	 * 删除数据集
 	 * @param dataId
 	 */
-	public void remove(String dataId);
+	public DataSet remove(String dataId);
 	
 	
 	/**
