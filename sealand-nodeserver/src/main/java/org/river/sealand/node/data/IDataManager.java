@@ -28,4 +28,13 @@ public interface IDataManager {
 	 * @param dataId
 	 */
 	public void remove(String dataId);
+	
+	
+	/**
+	 * <p>
+	 * 监听数据集
+	 * @param dataId
+	 * @param watcher
+	 */
+	public void watch(String dataId,IDataWatcher watcher);
 }
