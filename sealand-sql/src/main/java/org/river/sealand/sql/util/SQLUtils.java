@@ -29,4 +29,14 @@ public class SQLUtils {
 		}
 		return sb.toString();
 	}
+	
+	/**
+	 * <p>
+	 * 获取函数参数标识符
+	 * @param func
+	 * @return
+	 */
+	public static List<String> getFuncArgsLabel(String func){
+		return null;
+	}
 }

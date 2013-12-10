@@ -31,6 +31,7 @@ import java.util.Map;
  * @since Dec 7, 2013
  */
 public class MemDataSet implements DataSet {
+	public static final String COL_SEPERATOR="\t";
 	List<String> data = new ArrayList<String>();
 	List<String> lables = new ArrayList<String>();
 
