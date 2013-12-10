@@ -124,7 +124,7 @@ public class AggregateTaskHandler extends TaskHandler<Task> {
 
 		Map<String, String> groupValueMap = this.buildGroupByValues(aggregate.groupBy, groupValues);
 
-		List<String> fields = task.resultFields;
+		List<String> fields = task.columnFields;
 		StringBuffer sb = new StringBuffer();
 		boolean flag = true;
 		for (String tmp : fields) {

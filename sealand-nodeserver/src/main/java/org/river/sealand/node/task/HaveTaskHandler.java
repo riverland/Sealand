@@ -1,19 +1,17 @@
 package org.river.sealand.node.task;
 
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.sql.DataSource;
-
 import org.apache.zookeeper.ZooKeeper;
 import org.river.base.threads.type.DataEntity;
-import org.river.sealand.metainfo.task.JoinTask;
+import org.river.sealand.metainfo.task.HavingTask;
 import org.river.sealand.metainfo.task.ScanTask;
 import org.river.sealand.metainfo.task.Task;
-import org.river.sealand.node.algorithm.IJoinAlgorithm;
 import org.river.sealand.node.data.DataSet;
 import org.river.sealand.node.data.IDataWatcher;
+import org.river.sealand.node.data.MemDataSet;
+import org.river.sealand.utils.SQLException;
 import org.river.sealand.utils.ZooKeeperUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,8 +26,7 @@ import org.slf4j.LoggerFactory;
 public class HaveTaskHandler extends TaskHandler<Task> {
 
 	private static Logger LOG = LoggerFactory.getLogger(HaveTaskHandler.class);
-	protected DataSource dataSource;
-	protected IJoinAlgorithm algorithm;
+	protected IFilterAlgorithm algorithm;
 
 	@Override
 	public void handle(DataEntity<Task> data) {
@@ -37,13 +34,13 @@ public class HaveTaskHandler extends TaskHandler<Task> {
 			return;
 		}
 		ZooKeeper zk = null;
-		JoinTask task = (JoinTask) data.getData();
+		HavingTask task = (HavingTask) data.getData();
 		try {
 			zk = ZooKeeperUtils.getZooKeeper(zkHost, timeout);
 
-			DataSet dataSet = this.join(data);
+			DataSet dataSet = this.having(data);
 			this.dataManager.putDataSet(task.connectionId + "-" + task.dataId, dataSet);
-			this.dataManager.remove(task.localDataId);
+
 			int localRecNum = dataSet.count();
 			while (this.updateRecNum(zk, task, localRecNum) == -1) {
 				// do nothing
@@ -68,41 +65,26 @@ public class HaveTaskHandler extends TaskHandler<Task> {
 	 * 
 	 * @return
 	 */
-	private DataSet join(DataEntity<Task> data) throws InterruptedException {
-		JoinTask joinTask = (JoinTask) data.getData();
-		String localDataId = joinTask.connectionId + "-" + joinTask.localDataId;
-		DataSet localData = this.dataManager.getDataSet(localDataId);
+	private DataSet having(DataEntity<Task> data) throws InterruptedException {
+		HavingTask havingTask = (HavingTask) data.getData();
 		List<String> remotes = new ArrayList<String>();
-		List<String> dataIds = joinTask.srcDataIds;
+		List<String> dataIds = havingTask.srcDataIds;
 		for (String dataId : dataIds) {
-			remotes.add(joinTask.connectionId + "-" + dataId);
+			remotes.add(havingTask.connectionId + "-" + dataId);
 		}
-		String on = joinTask.on;
-		DataSet joinSet = this.join(localData, remotes, on);
-		return joinSet;
-	}
-
-	/*
-	 * 执行连接操作
-	 * 
-	 * @param local
-	 * 
-	 * @param remotes
-	 * 
-	 * @return
-	 */
-	private DataSet join(DataSet local, List<String> remotes, String on) throws InterruptedException {
+		String havings = havingTask.havings;
+		DataSet havingSet = new MemDataSet(havingTask.resultFields);
+		
 		while (remotes.size() > 0) {
 			DataSet remoteSet = this.getRemoteSet(remotes);
 			try {
-				local = this.algorithm.join(local, remoteSet, on);
+				havingSet.addAll(this.algorithm.filter(remoteSet, havings));
 			} catch (SQLException e) {
 				LOG.error(e.getLocalizedMessage());
 				// TODO implements the error logic
 			}
 		}
-
-		return local;
+		return havingSet;
 	}
 
 	/*
@@ -179,20 +161,11 @@ public class HaveTaskHandler extends TaskHandler<Task> {
 
 	}
 
-	public DataSource getDataSource() {
-		return dataSource;
-	}
-
-	public void setDataSource(DataSource dataSource) {
-		this.dataSource = dataSource;
-	}
-
-	public IJoinAlgorithm getAlgorithm() {
+	public IFilterAlgorithm getAlgorithm() {
 		return algorithm;
 	}
 
-	public void setAlgorithm(IJoinAlgorithm algorithm) {
+	public void setAlgorithm(IFilterAlgorithm algorithm) {
 		this.algorithm = algorithm;
 	}
-
 }

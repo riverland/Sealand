@@ -25,8 +25,11 @@ public abstract class Task implements Serializable {
 	/**数据源ID列表*/
 	public List<String> srcDataIds;
 
-	/** 返回列:格式dataId#列位 */
+	/** 返回列*/
 	public List<String> resultFields;
+	
+	/**用于计算的列表达式:格式dataId#列位 */
+	public List<String> columnFields;
 	
 	/**目标任务地址*/
 	public String destTaskPath;

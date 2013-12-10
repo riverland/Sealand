@@ -2,6 +2,8 @@ package org.river.sealand.node.data;
 
 import java.sql.ResultSet;
 import java.util.List;
+
+import org.river.sealand.utils.SQLException;
 /**
  * <p>
  * 内部数据集对象
@@ -47,6 +49,12 @@ public interface DataSet extends ResultSet {
 	 * @param recs
 	 */
 	public void addAll(List<String> recs);
+	
+	/**
+	 * 添加所有记录
+	 * @param recs
+	 */
+	public void addAll(DataSet recs) throws SQLException;
 	
 	/**
 	 * <p>

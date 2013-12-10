@@ -4,8 +4,6 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.sql.DataSource;
-
 import org.apache.zookeeper.ZooKeeper;
 import org.river.base.threads.type.DataEntity;
 import org.river.sealand.metainfo.task.JoinTask;
@@ -28,7 +26,6 @@ import org.slf4j.LoggerFactory;
 public class JoinTaskHandler extends TaskHandler<Task> {
 
 	private static Logger LOG = LoggerFactory.getLogger(JoinTaskHandler.class);
-	protected DataSource dataSource;
 	protected IJoinAlgorithm algorithm;
 
 	@Override
@@ -177,14 +174,6 @@ public class JoinTaskHandler extends TaskHandler<Task> {
 			return event.getDataId();
 		}
 
-	}
-
-	public DataSource getDataSource() {
-		return dataSource;
-	}
-
-	public void setDataSource(DataSource dataSource) {
-		this.dataSource = dataSource;
 	}
 
 	public IJoinAlgorithm getAlgorithm() {

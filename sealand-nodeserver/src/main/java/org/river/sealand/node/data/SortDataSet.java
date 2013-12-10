@@ -24,10 +24,10 @@ import java.util.Map;
 
 /**
  * <p>
- * 排序之后的数据集
- * TODO implement
+ * 排序之后的数据集 TODO implement
+ * 
  * @author river
- * @since  Dec 7, 2013
+ * @since Dec 7, 2013
  */
 public class SortDataSet implements DataSet {
 
@@ -1198,13 +1198,13 @@ public class SortDataSet implements DataSet {
 	@Override
 	public void addRecord(String rec) {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	@Override
 	public void addAll(List<String> recs) {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	@Override
@@ -1241,6 +1241,12 @@ public class SortDataSet implements DataSet {
 	public String getRecord() {
 		// TODO Auto-generated method stub
 		return null;
+	}
+
+	@Override
+	public void addAll(DataSet recs) {
+		// TODO Auto-generated method stub
+
 	}
 
 }

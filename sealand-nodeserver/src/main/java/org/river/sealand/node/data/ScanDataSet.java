@@ -1275,4 +1275,10 @@ public class ScanDataSet implements DataSet {
 		return null;
 	}
 
+	@Override
+	public void addAll(DataSet recs) {
+		// TODO Auto-generated method stub
+		
+	}
+
 }
