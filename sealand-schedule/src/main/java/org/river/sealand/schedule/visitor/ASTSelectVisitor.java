@@ -25,6 +25,7 @@ import org.river.sealand.sql.ast.SQLSort;
 import org.river.sealand.sql.ast.SQLTabReference;
 import org.river.sealand.sql.ast.SQLTable;
 import org.river.sealand.sql.util.SQLUtils;
+import org.river.sealand.utils.Entry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -131,7 +132,7 @@ public class ASTSelectVisitor extends ASTVisitor {
 		SQLSort sort = (SQLSort) ast;
 		List<SQLSort.Entry> entries = sort.getOrderbys();
 		for (SQLSort.Entry tmp : entries) {
-			sortNode.getSorts().put(tmp.getField(), tmp.getType());
+			sortNode.getSorts().add(new Entry<String,SQLSort.Type>(tmp.getField(), tmp.getType()));
 		}
 		return sortNode;
 	}

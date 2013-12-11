@@ -13,13 +13,13 @@ public class HavingTask extends Task {
 
 	private static final long serialVersionUID = 8265223529827605349L;
 
-	/**分组*/
+	/** 分组 */
 	public String groupBy;
-	
-	/**过滤*/
+
+	/** 过滤 */
 	public String havings;
-	
-	/**分组表达式*/
+
+	/** 分组表达式 */
 	public List<String> aggregates;
 
 	/** 需要传输获取的数据ID */

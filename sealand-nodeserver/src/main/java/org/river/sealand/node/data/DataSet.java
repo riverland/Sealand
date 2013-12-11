@@ -74,6 +74,13 @@ public interface DataSet extends ResultSet {
 	
 	/**
 	 * <p>
+	 * 获取所有列的数据类型
+	 * @return
+	 */
+	public List<DataType> getCollumnDataType();
+	
+	/**
+	 * <p>
 	 * 获取所有列名
 	 * @return
 	 */
@@ -92,4 +99,11 @@ public interface DataSet extends ResultSet {
 	 * @return
 	 */
 	public String getRecord();
+	
+	/**
+	 * <p>
+	 * 获取所有记录
+	 * @return
+	 */
+	public List<String> getRecords();
 }

@@ -1249,4 +1249,16 @@ public class SortDataSet implements DataSet {
 
 	}
 
+	@Override
+	public List<String> getRecords() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public List<DataType> getCollumnDataType() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
 }

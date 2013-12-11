@@ -35,7 +35,7 @@ import org.slf4j.LoggerFactory;
 public class AggregateTaskHandler extends TaskHandler<Task> {
 
 	private static Logger LOG = LoggerFactory.getLogger(AggregateTaskHandler.class);
-	private IGroupAlgorithm groupAlgorithm;
+	protected IGroupAlgorithm groupAlgorithm;
 
 	@Override
 	public void handle(DataEntity<Task> data) {
@@ -73,7 +73,7 @@ public class AggregateTaskHandler extends TaskHandler<Task> {
 	 * 
 	 * @return
 	 */
-	private DataSet aggregate(Task task) throws SQLException {
+	protected DataSet aggregate(Task task) throws SQLException {
 		Map<String, DataSet> group = this.group(task);
 		return this.aggregate(group, task);
 	}
@@ -87,7 +87,7 @@ public class AggregateTaskHandler extends TaskHandler<Task> {
 	 * 
 	 * @return
 	 */
-	private DataSet aggregate(Map<String, DataSet> group, Task task) throws SQLException {
+	protected DataSet aggregate(Map<String, DataSet> group, Task task) throws SQLException {
 		DataSet dataSet = new MemDataSet(task.resultFields);
 
 		Set<String> keySet = group.keySet();

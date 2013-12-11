@@ -4,7 +4,7 @@ import java.util.List;
 
 /**
  * <p>
- * 数据连接任务
+ * 数据分页任务
  * 
  * @author river
  * @since Dec 1, 2013

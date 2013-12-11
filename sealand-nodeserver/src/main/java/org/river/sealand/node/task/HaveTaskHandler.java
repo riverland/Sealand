@@ -1,15 +1,11 @@
 package org.river.sealand.node.task;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import org.apache.zookeeper.ZooKeeper;
 import org.river.base.threads.type.DataEntity;
 import org.river.sealand.metainfo.task.HavingTask;
 import org.river.sealand.metainfo.task.ScanTask;
 import org.river.sealand.metainfo.task.Task;
 import org.river.sealand.node.data.DataSet;
-import org.river.sealand.node.data.IDataWatcher;
 import org.river.sealand.node.data.MemDataSet;
 import org.river.sealand.utils.SQLException;
 import org.river.sealand.utils.ZooKeeperUtils;
@@ -59,69 +55,26 @@ public class HaveTaskHandler extends TaskHandler<Task> {
 	}
 
 	/*
-	 * 执行连接操作
+	 * 过滤操作
 	 * 
 	 * @param data
 	 * 
 	 * @return
 	 */
-	private DataSet having(DataEntity<Task> data) throws InterruptedException {
+	private DataSet having(DataEntity<Task> data) throws SQLException {
 		HavingTask havingTask = (HavingTask) data.getData();
-		List<String> remotes = new ArrayList<String>();
-		List<String> dataIds = havingTask.srcDataIds;
-		for (String dataId : dataIds) {
-			remotes.add(havingTask.connectionId + "-" + dataId);
-		}
+		String dataId = havingTask.srcDataIds.get(0);
+		DataSet groupSet = this.dataManager.getDataSet(dataId);
+
 		String havings = havingTask.havings;
 		DataSet havingSet = new MemDataSet(havingTask.resultFields);
-		
-		while (remotes.size() > 0) {
-			DataSet remoteSet = this.getRemoteSet(remotes);
-			try {
-				havingSet.addAll(this.algorithm.filter(remoteSet, havings));
-			} catch (SQLException e) {
-				LOG.error(e.getLocalizedMessage());
-				// TODO implements the error logic
-			}
+		try {
+			havingSet.addAll(this.algorithm.filter(groupSet, havings));
+		} catch (SQLException e) {
+			LOG.error(e.getLocalizedMessage());
+			// TODO implements the error logic
 		}
 		return havingSet;
-	}
-
-	/*
-	 * 获取应经准备好的数据，并从列表中删除
-	 * 
-	 * @param remotes
-	 * 
-	 * @return
-	 */
-	private DataSet getRemoteSet(List<String> remotes) throws InterruptedException {
-		DataSet data = null;
-		while (true) {
-			for (String tmp : remotes) {
-				data = this.dataManager.getDataSet(tmp);
-				if (data != null) {
-					remotes.remove(tmp);
-					return data;
-				}
-			}
-
-			Object lock = new Object();
-			lock.wait();
-			this.watch(lock, remotes);
-		}
-	}
-
-	/*
-	 * 监听未准备好的数据
-	 * 
-	 * @param lock
-	 * 
-	 * @param remotes
-	 */
-	private void watch(Object lock, List<String> remotes) {
-		for (String tmp : remotes) {
-			this.dataManager.watch(tmp, new DataReadyWatcher(lock));
-		}
 	}
 
 	@Override
@@ -133,32 +86,6 @@ public class HaveTaskHandler extends TaskHandler<Task> {
 	protected boolean needHandle(DataEntity<Task> data) {
 		Task task = data.getData();
 		return task.getType() == Task.Type.SCAN;
-	}
-
-	/**
-	 * <p>
-	 * 数据已经准备好的事件监听
-	 * 
-	 * @author river
-	 * @since Dec 8, 2013
-	 */
-	private static class DataReadyWatcher implements IDataWatcher {
-
-		private Object lock;
-
-		public DataReadyWatcher(Object lock) {
-			this.lock = lock;
-		}
-
-		@Override
-		public String fire(DataEvent event) {
-			if (event.getEvent() == IDataWatcher.EventType.CREATE) {
-				lock.notifyAll();
-			}
-
-			return event.getDataId();
-		}
-
 	}
 
 	public IFilterAlgorithm getAlgorithm() {
