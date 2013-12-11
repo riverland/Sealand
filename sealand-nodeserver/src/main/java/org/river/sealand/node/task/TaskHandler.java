@@ -1,7 +1,5 @@
 package org.river.sealand.node.task;
 
-import javax.sql.DataSource;
-
 import org.apache.zookeeper.ZooKeeper;
 import org.apache.zookeeper.data.Stat;
 import org.river.base.threads.impl.QueueHandlerAdaptor;

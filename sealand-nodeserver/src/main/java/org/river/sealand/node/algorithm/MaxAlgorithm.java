@@ -17,7 +17,7 @@ public class MaxAlgorithm implements IAggregateAlgorithm {
 
 	@Override
 	public String getResult() {
-		return null;
+		return maxValue.toString();
 	}
 
 	@Override

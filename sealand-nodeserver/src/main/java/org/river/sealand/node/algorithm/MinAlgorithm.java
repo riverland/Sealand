@@ -17,7 +17,7 @@ public class MinAlgorithm implements IAggregateAlgorithm {
 
 	@Override
 	public String getResult() {
-		return null;
+		return minValue.toString();
 	}
 
 	@Override
