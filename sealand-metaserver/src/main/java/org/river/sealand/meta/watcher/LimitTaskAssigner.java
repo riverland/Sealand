@@ -61,7 +61,7 @@ public class LimitTaskAssigner extends TaskAssigner {
 	}
 
 	/*
-	 * 把havingNode分配到一个资源比较充裕的节点
+	 * 把limitTask分配到一个资源比较充裕的节点
 	 * 
 	 * @return
 	 */

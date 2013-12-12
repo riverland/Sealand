@@ -1,6 +1,7 @@
 package org.river.sealand.metainfo.task;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -18,6 +19,12 @@ public abstract class Task implements Serializable {
 
 	/** 对应于一次连接,任务只属于一个数据库连接 */
 	public String connectionId;
+	
+	/**事务ID*/
+	public String transactionId;
+	
+	/**入口ID*/
+	public String stmtId;
 
 	/** 数据ID */
 	public String dataId;
@@ -36,6 +43,9 @@ public abstract class Task implements Serializable {
 	
 	/**当前任务地址*/
 	public String taskPath;
+	
+	/**参与计算的节点*/
+	public List<String> runNode=new ArrayList<String>();
 
 	public abstract Type getType();
 
