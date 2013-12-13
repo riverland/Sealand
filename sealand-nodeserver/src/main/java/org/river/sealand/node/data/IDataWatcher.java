@@ -19,7 +19,7 @@ public interface IDataWatcher {
 	public static class DataEvent {
 		private String dataId;
 
-		private EventType event;
+		private EventType event;		
 
 		public String getDataId() {
 			return dataId;
@@ -40,6 +40,6 @@ public interface IDataWatcher {
 	}
 
 	public static enum EventType {
-		CREATE
+		CREATE,READY
 	}
 }

@@ -31,14 +31,21 @@ import java.util.Map;
  * @since Dec 7, 2013
  */
 public class MemDataSet implements DataSet {
-	public static final String COL_SEPERATOR="\t";
+	public static final String COL_SEPERATOR = "\t";
 	List<String> data = new ArrayList<String>();
 	List<String> lables = new ArrayList<String>();
+	List<DataType> dataTypes;
 
-	
 	public MemDataSet(List<String> lables) {
 		this.lables = lables;
 	}
+
+	public MemDataSet(List<String> lables, List<DataType> dataTypes) {
+		this.lables = lables;
+		this.dataTypes = dataTypes;
+	}
+
+
 
 	@Override
 	public boolean next() throws SQLException {
@@ -1254,7 +1261,7 @@ public class MemDataSet implements DataSet {
 	@Override
 	public void addAll(DataSet recs) {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	@Override

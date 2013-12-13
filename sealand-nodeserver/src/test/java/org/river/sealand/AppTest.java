@@ -1,5 +1,7 @@
 package org.river.sealand;
 
+import java.util.Arrays;
+
 import junit.framework.TestCase;
 
 /**
@@ -11,7 +13,10 @@ public class AppTest extends TestCase {
 	 * Rigourous Test :-)
 	 */
 	public void testApp() {
-		
-		System.out.print(100&0xFF);	
+		String[] haha={"a","b","c","d"};
+		String []hoho=Arrays.copyOfRange(haha, 4, 4);
+		for(String tmp:hoho){
+			System.out.println(tmp);
+		}
 	}
 }

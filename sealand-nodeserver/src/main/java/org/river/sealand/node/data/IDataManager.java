@@ -1,4 +1,7 @@
 package org.river.sealand.node.data;
+
+import org.river.sealand.node.data.IDataWatcher.DataEvent;
+
 /**
  * <p>
  * 临时数据管理
@@ -37,4 +40,11 @@ public interface IDataManager {
 	 * @param watcher
 	 */
 	public void watch(String dataId,IDataWatcher watcher);
+	
+	/**
+	 * <p>
+	 * 触发数据事件
+	 * @param event
+	 */
+	public void fire(DataEvent event);
 }

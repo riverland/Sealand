@@ -26,9 +26,9 @@ import org.slf4j.LoggerFactory;
 public class MessageIoHandler extends IoHandlerAdapter {
 	private static final Logger log = LoggerFactory.getLogger(MessageIoHandler.class);
 
-	private final static String MSG_CACHE_KEY = "message";
-	private final static String MSG_LEN_KEY = "msg_len";
-	private final static String MSG_CUR_LEN_KEY = "msg_cur_len";
+	private final static String MSG_CACHE_KEY = "0";
+	private final static String MSG_LEN_KEY = "1";
+	private final static String MSG_CUR_LEN_KEY = "2";
 	private String charset;
 	private Map<MsgType, ISyncHandler> syncHandlers;
 	private IQueueHandlerManager<byte[]> asyncQueue;
