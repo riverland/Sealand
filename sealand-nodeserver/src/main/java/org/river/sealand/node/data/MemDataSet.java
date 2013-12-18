@@ -23,6 +23,9 @@ import java.util.Calendar;
 import java.util.List;
 import java.util.Map;
 
+import org.river.sealand.proto.data.DataSet;
+import org.river.sealand.proto.data.DataType;
+
 /**
  * <p>
  * 保存在内存中的数据集
@@ -1272,6 +1275,18 @@ public class MemDataSet implements DataSet {
 
 	@Override
 	public List<DataType> getCollumnDataType() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public String getConnectionId() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public String getTransactionId() {
 		// TODO Auto-generated method stub
 		return null;
 	}

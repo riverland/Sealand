@@ -10,8 +10,8 @@ import org.river.sealand.metainfo.task.JoinTask;
 import org.river.sealand.metainfo.task.ScanTask;
 import org.river.sealand.metainfo.task.Task;
 import org.river.sealand.node.algorithm.IJoinAlgorithm;
-import org.river.sealand.node.data.DataSet;
 import org.river.sealand.node.data.IDataWatcher;
+import org.river.sealand.proto.data.DataSet;
 import org.river.sealand.utils.ZooKeeperUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,7 +23,7 @@ import org.slf4j.LoggerFactory;
  * @author river
  * @since Dec 1, 2013
  */
-public class JoinTaskHandler extends TaskHandler<Task> {
+public class JoinTaskHandler extends TaskHandler{
 
 	private static Logger LOG = LoggerFactory.getLogger(JoinTaskHandler.class);
 	protected IJoinAlgorithm algorithm;

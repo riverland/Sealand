@@ -1,6 +1,6 @@
 package org.river.sealand.node.task;
 
-import org.river.sealand.node.data.DataSet;
+import org.river.sealand.proto.data.DataSet;
 
 /**
  * <p>

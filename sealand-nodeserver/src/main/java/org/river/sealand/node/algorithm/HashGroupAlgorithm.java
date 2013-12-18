@@ -3,7 +3,7 @@ package org.river.sealand.node.algorithm;
 import java.util.List;
 import java.util.Map;
 
-import org.river.sealand.node.data.DataSet;
+import org.river.sealand.proto.data.DataSet;
 
 /**
  * <p>

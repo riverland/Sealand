@@ -2,7 +2,7 @@ package org.river.sealand.node.algorithm;
 
 import java.sql.SQLException;
 
-import org.river.sealand.node.data.DataSet;
+import org.river.sealand.proto.data.DataSet;
 
 /**
  * <p>

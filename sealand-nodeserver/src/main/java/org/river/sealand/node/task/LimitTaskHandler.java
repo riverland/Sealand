@@ -5,7 +5,7 @@ import org.river.base.threads.type.DataEntity;
 import org.river.sealand.metainfo.task.LimitTask;
 import org.river.sealand.metainfo.task.SortTask;
 import org.river.sealand.metainfo.task.Task;
-import org.river.sealand.node.data.DataSet;
+import org.river.sealand.proto.data.DataSet;
 import org.river.sealand.utils.ZooKeeperUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,7 +18,7 @@ import org.slf4j.LoggerFactory;
  * @since Dec 7, 2013
  * @param <Task>
  */
-public class LimitTaskHandler extends TaskHandler<Task> {
+public class LimitTaskHandler extends TaskHandler {
 
 	private static Logger LOG = LoggerFactory.getLogger(LimitTaskHandler.class);
 

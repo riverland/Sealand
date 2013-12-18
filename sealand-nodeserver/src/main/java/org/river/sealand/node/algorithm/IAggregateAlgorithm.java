@@ -2,7 +2,7 @@ package org.river.sealand.node.algorithm;
 
 import java.util.List;
 
-import org.river.sealand.node.data.DataType;
+import org.river.sealand.proto.data.DataType;
 
 
 /**

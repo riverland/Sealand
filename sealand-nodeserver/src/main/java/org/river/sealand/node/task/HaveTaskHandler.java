@@ -5,8 +5,8 @@ import org.river.base.threads.type.DataEntity;
 import org.river.sealand.metainfo.task.HavingTask;
 import org.river.sealand.metainfo.task.ScanTask;
 import org.river.sealand.metainfo.task.Task;
-import org.river.sealand.node.data.DataSet;
 import org.river.sealand.node.data.MemDataSet;
+import org.river.sealand.proto.data.DataSet;
 import org.river.sealand.utils.SQLException;
 import org.river.sealand.utils.ZooKeeperUtils;
 import org.slf4j.Logger;
@@ -19,7 +19,7 @@ import org.slf4j.LoggerFactory;
  * @author river
  * @since Dec 1, 2013
  */
-public class HaveTaskHandler extends TaskHandler<Task> {
+public class HaveTaskHandler extends TaskHandler {
 
 	private static Logger LOG = LoggerFactory.getLogger(HaveTaskHandler.class);
 	protected IFilterAlgorithm algorithm;

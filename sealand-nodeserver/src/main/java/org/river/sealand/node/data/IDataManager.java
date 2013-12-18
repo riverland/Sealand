@@ -1,6 +1,7 @@
 package org.river.sealand.node.data;
 
 import org.river.sealand.node.data.IDataWatcher.DataEvent;
+import org.river.sealand.proto.data.DataSet;
 
 /**
  * <p>

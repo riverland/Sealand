@@ -8,7 +8,7 @@ package org.river.sealand.proto;
  * @since Dec 11, 2013
  */
 public enum MsgType {
-	RAW_DATA('R');
+	RAW_DATA('R'),TRANSFER('T');
 	private char value;
 
 	public char getValue() {

@@ -15,9 +15,9 @@ import org.river.sealand.metainfo.task.Task;
 import org.river.sealand.node.algorithm.AlggregateAlgorithmManager;
 import org.river.sealand.node.algorithm.IAggregateAlgorithm;
 import org.river.sealand.node.algorithm.IGroupAlgorithm;
-import org.river.sealand.node.data.DataSet;
-import org.river.sealand.node.data.DataType;
 import org.river.sealand.node.data.MemDataSet;
+import org.river.sealand.proto.data.DataSet;
+import org.river.sealand.proto.data.DataType;
 import org.river.sealand.sql.util.SQLUtils;
 import org.river.sealand.utils.StringUtils;
 import org.river.sealand.utils.ZooKeeperUtils;
@@ -32,7 +32,7 @@ import org.slf4j.LoggerFactory;
  * @since Dec 7, 2013
  * @param <Task>
  */
-public class AggregateTaskHandler extends TaskHandler<Task> {
+public class AggregateTaskHandler extends TaskHandler {
 
 	private static Logger LOG = LoggerFactory.getLogger(AggregateTaskHandler.class);
 	protected IGroupAlgorithm groupAlgorithm;

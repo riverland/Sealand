@@ -20,8 +20,8 @@ import org.slf4j.LoggerFactory;
  * @since Dec 7, 2013
  * @param <Task>
  */
-public abstract class TaskHandler<E> extends QueueHandlerAdaptor<E> {
-	private static final Logger LOG = LoggerFactory.getLogger(TaskHandler.class);	
+public abstract class TaskHandler extends QueueHandlerAdaptor<Task> {
+	private static final Logger LOG = LoggerFactory.getLogger(TaskHandler.class);
 	protected IDataManager dataManager;
 	protected String zkHost;
 	protected long timeout;
@@ -29,6 +29,7 @@ public abstract class TaskHandler<E> extends QueueHandlerAdaptor<E> {
 	/**
 	 * <p>
 	 * 判断是否需要处理
+	 * 
 	 * @param data
 	 * @return
 	 */

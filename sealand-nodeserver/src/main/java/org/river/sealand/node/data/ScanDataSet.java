@@ -24,6 +24,8 @@ import java.util.Calendar;
 import java.util.List;
 import java.util.Map;
 
+import org.river.sealand.proto.data.DataSet;
+import org.river.sealand.proto.data.DataType;
 import org.river.sealand.utils.CloseUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -1289,6 +1291,18 @@ public class ScanDataSet implements DataSet {
 
 	@Override
 	public List<DataType> getCollumnDataType() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public String getConnectionId() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public String getTransactionId() {
 		// TODO Auto-generated method stub
 		return null;
 	}

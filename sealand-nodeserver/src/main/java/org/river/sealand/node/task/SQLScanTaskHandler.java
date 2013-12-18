@@ -20,7 +20,7 @@ import org.slf4j.LoggerFactory;
  * @author river
  * @since Dec 1, 2013
  */
-public class SQLScanTaskHandler extends TaskHandler<Task> {
+public class SQLScanTaskHandler extends TaskHandler {
 
 	private static Logger LOG = LoggerFactory.getLogger(SQLScanTaskHandler.class);
 	protected DataSource dataSource;
