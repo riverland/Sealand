@@ -1,4 +1,4 @@
-package org.river.sealand.node.data;
+package org.river.sealand.proto.data;
 
 import java.io.InputStream;
 import java.io.Reader;
@@ -7,11 +7,9 @@ import java.net.URL;
 import java.sql.Array;
 import java.sql.Blob;
 import java.sql.Clob;
-import java.sql.Connection;
 import java.sql.Date;
 import java.sql.NClob;
 import java.sql.Ref;
-import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.RowId;
 import java.sql.SQLException;
@@ -20,34 +18,34 @@ import java.sql.SQLXML;
 import java.sql.Statement;
 import java.sql.Time;
 import java.sql.Timestamp;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
 import java.util.Map;
 
 import org.river.sealand.proto.data.DataSet;
 import org.river.sealand.proto.data.DataType;
-import org.river.sealand.utils.CloseUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * <p>
- * 数据库扫描结果集 TODO finish the implement
+ * 保存在内存中的数据集
  * 
  * @author river
  * @since Dec 7, 2013
  */
-public class ScanDataSet implements DataSet {
-	private static Logger LOG = LoggerFactory.getLogger(ScanDataSet.class);
+public class MemDataSet implements DataSet {
+	public static final String COL_SEPERATOR = "\t";
+	List<String> data = new ArrayList<String>();
+	List<String> lables = new ArrayList<String>();
+	List<DataType> dataTypes;
 
-	private Connection con;
-	private String sql;
-	private Statement stmt;
-	private ResultSet resultSet;
+	public MemDataSet(List<String> lables) {
+		this.lables = lables;
+	}
 
-	public ScanDataSet(Connection con, String sql) {
-		this.con = con;
-		this.sql = sql;
+	public MemDataSet(List<String> lables, List<DataType> dataTypes) {
+		this.lables = lables;
+		this.dataTypes = dataTypes;
 	}
 
 	@Override
@@ -1198,30 +1196,14 @@ public class ScanDataSet implements DataSet {
 
 	@Override
 	public int count() {
-		String countSql = "select count(*) from " + sql;
-		ResultSet rs = null;
-		Statement stmt = null;
-		try {
-			stmt = this.con.createStatement();
-			rs = stmt.executeQuery(countSql);
-			return rs.getInt(1);
-		} catch (Throwable e) {
-
-		} finally {
-			CloseUtils.close(rs);
-			CloseUtils.close(stmt);
-		}
+		// TODO Auto-generated method stub
 		return 0;
 	}
 
 	@Override
 	public void load() {
-		try {
-			this.stmt = con.createStatement();
-			this.resultSet = stmt.executeQuery(sql);
-		} catch (Exception e) {
-			LOG.error(e.getLocalizedMessage());
-		}
+		// TODO Auto-generated method stub
+
 	}
 
 	@Override
@@ -1232,13 +1214,13 @@ public class ScanDataSet implements DataSet {
 	@Override
 	public void addRecord(String rec) {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	@Override
 	public void addAll(List<String> recs) {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	@Override
@@ -1280,7 +1262,7 @@ public class ScanDataSet implements DataSet {
 	@Override
 	public void addAll(DataSet recs) {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	@Override
@@ -1310,19 +1292,19 @@ public class ScanDataSet implements DataSet {
 	@Override
 	public void setAlias(String alias) {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	@Override
 	public void setConnectionId(String conId) {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	@Override
 	public void setTransactionId(String xaId) {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 }

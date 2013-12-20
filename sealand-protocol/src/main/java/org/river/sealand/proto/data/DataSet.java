@@ -20,6 +20,13 @@ public interface DataSet extends ResultSet {
 	
 	/**
 	 * <p>
+	 * 设置数据集别名
+	 * @param alias
+	 */
+	public void setAlias(String alias);
+	
+	/**
+	 * <p>
 	 * 数据集记录数
 	 */
 	public int count();
@@ -116,10 +123,22 @@ public interface DataSet extends ResultSet {
 	
 	/**
 	 * <p>
+	 * 设置连接ID
+	 * @param conId
+	 */
+	public void setConnectionId(String conId);
+	
+	/**
+	 * <p>
 	 * 获取事务ID
 	 * @return
 	 */
 	public String getTransactionId();
 	
-	
+	/**
+	 * <p>
+	 * 设置事务ID
+	 * @return
+	 */
+	public void setTransactionId(String xaId);
 }

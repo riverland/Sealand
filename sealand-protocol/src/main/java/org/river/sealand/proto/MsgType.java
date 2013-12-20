@@ -8,7 +8,7 @@ package org.river.sealand.proto;
  * @since Dec 11, 2013
  */
 public enum MsgType {
-	RAW_DATA('R'),TRANSFER('T');
+	RAW_DATA('R'), TRANSFER('T');
 	private char value;
 
 	public char getValue() {
@@ -17,6 +17,24 @@ public enum MsgType {
 
 	private MsgType(char value) {
 		this.value = value;
+	}
+
+	/**
+	 * <p>
+	 * 从值中获取实例
+	 * @param value
+	 * @return
+	 */
+	public static MsgType fromValue(char value) {
+		if (RAW_DATA.value == value) {
+			return RAW_DATA;
+		}
+
+		if (TRANSFER.value == value) {
+			return RAW_DATA;
+		}
+
+		return null;
 	}
 
 }

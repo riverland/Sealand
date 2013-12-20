@@ -9,7 +9,7 @@ import org.river.sealand.proto.data.DataSet;
  * @author river
  * @since Dec 18, 2013
  */
-public interface IPackService {
+public interface IPackService<E> {
 	/**
 	 * <p>
 	 * 把dataset打包为byte[]格式
@@ -17,7 +17,7 @@ public interface IPackService {
 	 * @param dataset
 	 * @return
 	 */
-	public byte[] pack(DataSet dataset);
+	public byte[] pack(E data);
 
 	/**
 	 * <p>
@@ -26,5 +26,5 @@ public interface IPackService {
 	 * @param data
 	 * @return
 	 */
-	public DataSet unpack(byte[] data);
+	public E unpack(byte[] data);
 }

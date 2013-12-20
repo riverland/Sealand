@@ -26,5 +26,18 @@ public interface IMetaDataService {
 	 */
 	public List<String> getColumnNames(String tabName);
 	
+	/**
+	 * <p>
+	 * 获取下一个入口ID
+	 * 
+	 * @return
+	 */
+	public String genStatementId();
 	
+	/**
+	 * <p>
+	 * 生成下一个事务ID
+	 * @return
+	 */
+	public String genTransactionId();
 }

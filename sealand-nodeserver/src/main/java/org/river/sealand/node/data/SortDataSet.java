@@ -1276,4 +1276,22 @@ public class SortDataSet implements DataSet {
 		return null;
 	}
 
+	@Override
+	public void setAlias(String alias) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void setConnectionId(String conId) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void setTransactionId(String xaId) {
+		// TODO Auto-generated method stub
+		
+	}
+
 }

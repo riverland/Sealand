@@ -1,12 +1,16 @@
 package org.river.sealand.proto.pack;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import org.apache.commons.lang.ArrayUtils;
+import org.apache.commons.lang.StringUtils;
 import org.river.sealand.proto.MSGConstant;
 import org.river.sealand.proto.MsgType;
 import org.river.sealand.proto.data.DataSet;
 import org.river.sealand.proto.data.DataType;
+import org.river.sealand.proto.data.MemDataSet;
 import org.river.sealand.sql.util.SQLUtils;
 import org.river.sealand.utils.NumberUtils;
 import org.slf4j.Logger;
@@ -19,7 +23,7 @@ import org.slf4j.LoggerFactory;
  * @author river
  * @since Dec 18, 2013
  */
-public class TransferPackService implements IPackService {
+public class TransferPackService implements IPackService<DataSet> {
 
 	private static final Logger LOG = LoggerFactory.getLogger(TransferPackService.class);
 
@@ -41,7 +45,28 @@ public class TransferPackService implements IPackService {
 
 	@Override
 	public DataSet unpack(byte[] data) {
-		return null;
+		int pos = MSGConstant.MSG_TYPE_BYTE_INDEX + 1;
+
+		byte dataIdLen = data[pos];
+		String dataId = new String(Arrays.copyOfRange(data, pos + 1, dataIdLen));
+		String[] metaInfo = StringUtils.split(dataId, MSGConstant.DATA_ID_SEPERATE);
+
+		pos = +dataIdLen;
+
+		byte[] lblLens = { data[pos], data[pos + 1] };
+		int lblLen = NumberUtils.readInt2(lblLens);
+		List<String> labels = this.buildLabels(data, pos, lblLen);
+		pos = +lblLen;
+
+		int dataTypeLen = data[pos];
+		List<DataType> dataTypes = this.buildDataTypes(data, pos, dataTypeLen);
+		pos = +dataTypeLen;
+
+		DataSet dataSet = new MemDataSet(labels, dataTypes);
+		dataSet.setConnectionId(metaInfo[0]);
+		dataSet.setTransactionId(metaInfo[1]);
+		dataSet.setAlias(metaInfo[2]);
+		return dataSet;
 	}
 
 	/*
@@ -139,6 +164,39 @@ public class TransferPackService implements IPackService {
 		byte[] data = item.getBytes();
 		byte[] len = NumberUtils.writeInt2(data.length);
 		return ArrayUtils.addAll(len, data);
+	}
+
+	/*
+	 * 构建表格表头数据
+	 * 
+	 * @param data
+	 * 
+	 * @param len
+	 * 
+	 * @return
+	 */
+	private List<String> buildLabels(byte[] data, int start, int len) {
+		String lableStr = new String(Arrays.copyOfRange(data, start + 2, start + len));
+		String[] lableArr = StringUtils.split(lableStr, MemDataSet.COL_SEPERATOR);
+		List<String> labels = Arrays.asList(lableArr);
+		return labels;
+	}
+
+	/*
+	 * 构建表格表头数据
+	 * 
+	 * @param data
+	 * 
+	 * @param len
+	 * 
+	 * @return
+	 */
+	private List<DataType> buildDataTypes(byte[] data, int start, int len) {
+		List<DataType> dataTypes = new ArrayList<DataType>();
+		for (int i = start + 1; i < start + len; i++) {
+			dataTypes.add(DataType.get((char) data[i]));
+		}
+		return dataTypes;
 	}
 
 }
