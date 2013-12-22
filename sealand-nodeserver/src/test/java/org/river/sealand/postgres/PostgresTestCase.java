@@ -19,6 +19,7 @@ public class PostgresTestCase extends TestCase {
 			Class.forName("org.postgresql.Driver");
 			conn = DriverManager.getConnection(url, usr, psd);
 			Statement st = conn.createStatement();
+			st.execute("insert into T_C values('11','22')");
 			ResultSet rs = st.executeQuery(sql);
 			while (rs.next()) {
 				System.out.print(rs.getString(1));

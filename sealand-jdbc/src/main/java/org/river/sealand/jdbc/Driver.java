@@ -4,9 +4,9 @@ import java.sql.Connection;
 import java.sql.DriverPropertyInfo;
 import java.sql.SQLException;
 import java.sql.SQLFeatureNotSupportedException;
-import java.util.Enumeration;
 import java.util.Properties;
 
+import org.river.sealand.jdbc.support.CONProperties;
 import org.river.sealand.utils.Constant;
 import org.river.sealand.utils.JDBCUtils;
 import org.slf4j.Logger;
@@ -88,24 +88,29 @@ public class Driver implements java.sql.Driver {
 	public DriverPropertyInfo[] getPropertyInfo(String url, Properties info) throws SQLException {
 		Properties props = new Properties(info);
 		props = JDBCUtils.parseUrl(url, props);
-
-		return null;
+		CONProperties[] conInfo = CONProperties.values();
+		DriverPropertyInfo[] driverProps = new DriverPropertyInfo[conInfo.length];
+		for (int i = 0; i < conInfo.length; i++) {
+			driverProps[i] = new DriverPropertyInfo(conInfo[i].getName(), props.getProperty(conInfo[i].getName()));
+			driverProps[i].required = conInfo[i].isRequire();
+			String[] dft = { conInfo[i].getDefaults() };
+			driverProps[i].choices = dft;
+		}
+		return driverProps;
 	}
 
 	@Override
 	public int getMajorVersion() {
-		return 0;
+		return Version.V2_1.getValue();
 	}
 
 	@Override
 	public int getMinorVersion() {
-		// TODO Auto-generated method stub
-		return 0;
+		return Version.V1_0.getValue();
 	}
 
 	@Override
 	public boolean jdbcCompliant() {
-		// TODO Auto-generated method stub
 		return false;
 	}
 

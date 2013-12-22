@@ -46,7 +46,6 @@ public class ConnectionImpl implements Connection {
 	}
 
 	public ConnectionImpl(String url, Properties props) {
-		super();
 		this.url = url;
 		this.props = props;
 	}
