@@ -1,9 +1,13 @@
 package org.river.sealand.proto;
 
 import java.nio.charset.Charset;
+import java.sql.SQLException;
 
 import org.river.sealand.jdbc.Version;
 import org.river.sealand.jdbc.support.ConnectionState;
+import org.river.sealand.jdbc.support.IParams;
+import org.river.sealand.jdbc.support.IQuery;
+import org.river.sealand.jdbc.support.IResultHandler;
 import org.river.sealand.jdbc.support.TransactionState;
 
 /**
@@ -45,17 +49,32 @@ public interface IProtoConnection extends IConnectionInfo {
 	 * @return
 	 */
 	public Version getProtoVersion();
-	
+
 	/**
 	 * <p>
 	 * 关闭当前连接
 	 */
-    public void close();
-    
-    /**
-     * <p>
-     * 获取连接状态
-     * @return
-     */
-    public ConnectionState getConnectionState();
+	public void close();
+
+	/**
+	 * <p>
+	 * 获取连接状态
+	 * 
+	 * @return
+	 */
+	public ConnectionState getConnectionState();
+
+	/**
+	 * <p>
+	 * 执行sql查询
+	 * 
+	 * @param query
+	 * @param params
+	 * @param handler
+	 * @param maxRows
+	 * @param fetchSize
+	 * @param flags
+	 * @throws SQLException
+	 */
+	public void execute(IQuery query, IParams params, IResultHandler handler, int maxRows, int fetchSize, int flags) throws SQLException;
 }

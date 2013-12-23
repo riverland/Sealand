@@ -20,4 +20,14 @@ public enum Version {
 		return value;
 	}
 
+	public static Version fromValue(int value) {
+		if (V1_0.value == value) {
+			return V1_0;
+		} else if (V2_1.value == value) {
+			return V2_1;
+		}
+
+		return null;
+	}
+
 }

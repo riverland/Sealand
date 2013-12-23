@@ -19,6 +19,7 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.Executor;
 
+import org.river.sealand.proto.IProtoConnection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -37,6 +38,9 @@ public class ConnectionImpl implements Connection {
 	private String user;
 	private String password;
 	private Properties props;
+	
+	//依赖的其他服务
+	private IProtoConnection protoConn;
 
 	public ConnectionImpl(String url, String user, String password, Properties props) {
 		this.url = url;
