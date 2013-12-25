@@ -36,9 +36,10 @@ public class ProtoConnectionImpl implements IProtoConnection {
 	private TransactionState xaState;
 	private List<INotification> notifications;
 	private ConnectionState connState;
-	
+
 	// 依赖的其他业务接口
-	public IStmtExecutor stmtExecutor;
+	private IStmtExecutor stmtExecutor;
+	private IProtoStream protoStream;
 
 	@Override
 	public String getHost() {
@@ -90,7 +91,8 @@ public class ProtoConnectionImpl implements IProtoConnection {
 
 	@Override
 	public void close() {
-
+		this.protoStream.close();
+		this.connState = ConnectionState.CLOSED;
 	}
 
 	@Override
