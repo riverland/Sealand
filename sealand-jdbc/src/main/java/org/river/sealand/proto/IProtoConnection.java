@@ -63,18 +63,11 @@ public interface IProtoConnection extends IConnectionInfo {
 	 * @return
 	 */
 	public ConnectionState getConnectionState();
-
+	
 	/**
-	 * <p>
-	 * 执行sql查询
-	 * 
-	 * @param query
-	 * @param params
-	 * @param handler
-	 * @param maxRows
-	 * @param fetchSize
-	 * @param flags
-	 * @throws SQLException
+	 * 获取协议连接
+	 * @return
 	 */
-	public void execute(IQuery query, IParams params, IResultHandler handler, int maxRows, int fetchSize, int flags) throws SQLException;
+	public IProtoStream getProtoStream();
+
 }

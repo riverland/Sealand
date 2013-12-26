@@ -36,11 +36,13 @@ public class ProtoStream implements IProtoStream {
 	private InputStream input;
 	private OutputStream output;
 	private Queue<Message> msgQueue = new LinkedBlockingQueue<Message>();
+	private ReceiveThread rcvThread;
 
 	public ProtoStream(String host, int port) throws IOException {
 		this.host = host;
 		this.port = port;
-		this.doConnect();
+		this.initialize();
+
 	}
 
 	public ProtoStream(String host, int port, int sotimeout, boolean keepTcpAlive) throws IOException {
@@ -48,14 +50,30 @@ public class ProtoStream implements IProtoStream {
 		this.port = port;
 		this.sotimeout = sotimeout;
 		this.keepTcpAlive = keepTcpAlive;
+		this.initialize();
+	}
+
+	/*
+	 * 初始化
+	 */
+	private void initialize() throws IOException {
 		this.doConnect();
+		this.doReceive();
+	}
+
+	/*
+	 * 启动接受线程
+	 */
+	private void doReceive() {
+		rcvThread = new ReceiveThread();
+		rcvThread.start();
 	}
 
 	/*
 	 * 连接
 	 */
 	private void doConnect() throws IOException {
-		
+
 		try {
 			socket = new Socket();
 			SocketAddress endpoint = new InetSocketAddress(this.host, this.port);
@@ -75,6 +93,7 @@ public class ProtoStream implements IProtoStream {
 
 	@Override
 	public void close() {
+		this.rcvThread.close();
 		CloseUtils.close(input);
 		CloseUtils.close(output);
 		CloseUtils.close(socket);
@@ -105,17 +124,26 @@ public class ProtoStream implements IProtoStream {
 	private class ReceiveThread extends Thread {
 		private boolean isAlive = true;
 
+		private void close() {
+			isAlive = false;
+		}
+
 		@Override
 		public void run() {
 			try {
 				while (isAlive) {
 					byte[] lenByte = this.readMsgData(MSGConstant.KEY_LEN_WIDTH);
-					int len=NumberUtils.readInt4(lenByte);
-					byte[] data=this.readMsgData(len-MSGConstant.KEY_LEN_WIDTH);
-					
+					int len = NumberUtils.readInt4(lenByte);
+					byte[] data = this.readMsgData(len - MSGConstant.KEY_LEN_WIDTH);
+					Message msg = new Message();
+					msg.setLength(len);
+					msg.setData(data);
+					Message.Type type = Message.Type.fromValue((char) data[0]);
+					msg.setType(type);
+					msgQueue.offer(msg);
 				}
 			} catch (Exception e) {
-				log.error(e.getLocalizedMessage());	
+				log.error(e.getLocalizedMessage());
 				close();
 			}
 

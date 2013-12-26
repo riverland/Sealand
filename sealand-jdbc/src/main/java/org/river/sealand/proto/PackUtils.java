@@ -1,5 +1,8 @@
 package org.river.sealand.proto;
 
+import org.river.sealand.jdbc.support.IParams;
+import org.river.sealand.jdbc.support.IQuery;
+
 
 /**
  * <p>
@@ -10,4 +13,14 @@ package org.river.sealand.proto;
  */
 public class PackUtils {
 	
+	/**
+	 * <p>
+	 * 构建执行消息
+	 * @param query
+	 * @param params
+	 * @return
+	 */
+	public static byte[] pack4ExecMsg(IQuery query, IParams params){
+		return null;
+	}
 }

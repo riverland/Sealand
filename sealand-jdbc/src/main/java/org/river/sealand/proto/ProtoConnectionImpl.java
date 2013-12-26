@@ -1,17 +1,12 @@
 package org.river.sealand.proto;
 
 import java.nio.charset.Charset;
-import java.sql.SQLException;
 import java.util.List;
 import java.util.Properties;
 
 import org.river.sealand.jdbc.Version;
 import org.river.sealand.jdbc.support.CONProperties;
 import org.river.sealand.jdbc.support.ConnectionState;
-import org.river.sealand.jdbc.support.IParams;
-import org.river.sealand.jdbc.support.IQuery;
-import org.river.sealand.jdbc.support.IResultHandler;
-import org.river.sealand.jdbc.support.IStmtExecutor;
 import org.river.sealand.jdbc.support.TransactionState;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,7 +33,6 @@ public class ProtoConnectionImpl implements IProtoConnection {
 	private ConnectionState connState;
 
 	// 依赖的其他业务接口
-	private IStmtExecutor stmtExecutor;
 	private IProtoStream protoStream;
 
 	@Override
@@ -101,8 +95,8 @@ public class ProtoConnectionImpl implements IProtoConnection {
 	}
 
 	@Override
-	public void execute(IQuery query, IParams params, IResultHandler handler, int maxRows, int fetchSize, int flags) throws SQLException {
-		this.stmtExecutor.execute(query, params, handler, maxRows, fetchSize, flags);
+	public IProtoStream getProtoStream() {
+		return this.protoStream;
 	}
 
 }

@@ -13,7 +13,7 @@ public class Message {
 
 	private Type type;
 
-	private byte[] data;	
+	private byte[] data;
 
 	public int getLength() {
 		return length;
@@ -23,7 +23,6 @@ public class Message {
 		this.length = length;
 	}
 
-
 	public Type getType() {
 		return type;
 	}
@@ -31,8 +30,6 @@ public class Message {
 	public void setType(Type type) {
 		this.type = type;
 	}
-
-
 
 	public byte[] getData() {
 		return data;
@@ -45,10 +42,30 @@ public class Message {
 	/**
 	 * <p>
 	 * 消息类型枚举
+	 * 
 	 * @author river
-	 * @since  Dec 25, 2013
+	 * @since Dec 25, 2013
 	 */
 	public static enum Type {
-		
+		ROW_DESC('T');
+
+		private char value;
+
+		private Type(char value) {
+			this.value = value;
+		}
+
+		public char getValue() {
+			return this.value;
+		}
+
+		public static Type fromValue(char value) {
+			if (value == ROW_DESC.value) {
+				return ROW_DESC;
+			}
+
+			return null;
+		}
+
 	}
 }
