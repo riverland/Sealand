@@ -20,6 +20,7 @@ public abstract class AbstractStatement implements Statement {
 	protected int fetchDirection;
 	protected Connection con;
 	protected boolean poolable;
+	protected boolean isClosed = false;
 
 	@Override
 	public int getMaxFieldSize() throws SQLException {
