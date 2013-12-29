@@ -1,6 +1,7 @@
 package org.river.sealand.proto;
 
 import java.sql.SQLException;
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -12,12 +13,13 @@ import java.util.Map;
  */
 public class TypeMapInfo implements ITypeInfo {
 
-	private Map<String, Integer> typeName2SqlTypeMap;
-	private Map<String, Class<?>> typeName2ClazzMap;
-	private Map<String, Integer> typeName2OidMap; 
-	private Map<String, Integer> oid2TypeNameMap;
-	private Map<Integer,Integer> arrOid2BaseOidMap;
-	private Map<Integer,Integer> arrOid2DelimiterMap;
+	private Map<String, Integer> typeName2SqlTypeMap = new HashMap<String, Integer>();
+	private Map<String, Class<?>> typeName2ClazzMap = new HashMap<String, Class<?>>();
+	private Map<String, Integer> typeName2OidMap = new HashMap<String, Integer>();
+	private Map<Integer, String> oid2TypeNameMap = new HashMap<Integer, String>();
+	private Map<Integer, Integer> arrOid2BaseOidMap = new HashMap<Integer, Integer>();
+	private Map<Integer, Integer> baseOid2ArrOidMap = new HashMap<Integer, Integer>();
+	private Map<Integer, Character> arrOid2DelimiterMap = new HashMap<Integer, Character>();
 
 	@Override
 	public void addCoreType(String typeName, Integer oid, Integer sqlType, String javaClass, Integer arrayOid) {
@@ -32,102 +34,96 @@ public class TypeMapInfo implements ITypeInfo {
 	}
 
 	@Override
-	public int getSQLType(int oid) throws SQLException {
-		// TODO Auto-generated method stub
-		return 0;
+	public Integer getSQLType(Integer oid) throws SQLException {
+		String typeName = this.oid2TypeNameMap.get(oid);
+		return this.typeName2SqlTypeMap.get(typeName);
 	}
 
 	@Override
-	public int getSQLType(String typeName) throws SQLException {
-		return 0;
+	public Integer getSQLType(String typeName) throws SQLException {
+		return this.typeName2SqlTypeMap.get(typeName);
 	}
 
 	@Override
-	public int getOid(String typeName) throws SQLException {
-		// TODO Auto-generated method stub
-		return 0;
+	public Integer getOid(String typeName) throws SQLException {
+		return this.typeName2OidMap.get(typeName);
 	}
 
 	@Override
-	public String getTypeName(int oid) throws SQLException {
-		// TODO Auto-generated method stub
-		return null;
+	public String getTypeName(Integer oid) throws SQLException {
+		return this.oid2TypeNameMap.get(oid);
 	}
 
 	@Override
-	public int getArrayBaseOid(int arrayOid) throws SQLException {
-		// TODO Auto-generated method stub
-		return 0;
+	public Integer getArrayBaseOid(Integer arrayOid) throws SQLException {
+		return this.arrOid2BaseOidMap.get(arrayOid);
 	}
 
 	@Override
-	public int getArrayOid(String eleTypeName) throws SQLException {
-		// TODO Auto-generated method stub
-		return 0;
+	public Integer getArrayOid(String eleTypeName) throws SQLException {
+		Integer baseOid=this.getOid(eleTypeName);
+		return this.baseOid2ArrOidMap.get(baseOid);
 	}
 
 	@Override
-	public char getArrayDelimiter(int oid) throws SQLException {
-		// TODO Auto-generated method stub
-		return 0;
+	public char getArrayDelimiter(Integer oid) throws SQLException {
+		return this.arrOid2DelimiterMap.get(oid);
 	}
 
 	@Override
-	public Map<String, Integer> getTypeName2SqlTypes() {
-		// TODO Auto-generated method stub
-		return null;
+	public Map<String, Integer> getTypeName2SqlTypes() {		
+		return this.typeName2SqlTypeMap;
 	}
 
 	@Override
 	public Class<?> getJavaClass(String typeName) {
-		// TODO Auto-generated method stub
-		return null;
+		return this.typeName2ClazzMap.get(typeName);
 	}
 
 	@Override
-	public String getJavaClass(int oid) throws SQLException {
-		// TODO Auto-generated method stub
-		return null;
+	public Class<?> getJavaClass(Integer oid) throws SQLException {
+		String typeName=this.getTypeName(oid);
+		return this.typeName2ClazzMap.get(typeName);
 	}
 
 	@Override
-	public int getPrecision(int oid, int typmod) {
-		// TODO Auto-generated method stub
-		return 0;
-	}
-
-	@Override
-	public int getScale(int oid, int typmod) {
+	public Integer getPrecision(Integer oid, Integer typmod) {
 		// TODO Auto-generated method stub
 		return 0;
 	}
 
 	@Override
-	public boolean isCaseSensitive(int oid) {
+	public Integer getScale(Integer oid, Integer typmod) {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+
+	@Override
+	public boolean isCaseSensitive(Integer oid) {
 		// TODO Auto-generated method stub
 		return false;
 	}
 
 	@Override
-	public boolean isSigned(int oid) {
+	public boolean isSigned(Integer oid) {
 		// TODO Auto-generated method stub
 		return false;
 	}
 
 	@Override
-	public int getDisplaySize(int oid, int typmod) {
+	public Integer getDisplaySize(Integer oid, Integer typmod) {
 		// TODO Auto-generated method stub
 		return 0;
 	}
 
 	@Override
-	public int getMaximumPrecision(int oid) {
+	public Integer getMaximumPrecision(Integer oid) {
 		// TODO Auto-generated method stub
 		return 0;
 	}
 
 	@Override
-	public boolean requiresQuoting(int oid) throws SQLException {
+	public boolean requiresQuoting(Integer oid) throws SQLException {
 		// TODO Auto-generated method stub
 		return false;
 	}

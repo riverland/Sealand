@@ -52,8 +52,7 @@ public class Oid {
 	public static final int VOID = 2278;
 	public static final int INTERVAL = 1186;
 	public static final int INTERVAL_ARRAY = 1187;
-	public static final int CHAR = 18; // This is not char(N), this is "char" a
-										// single byte type.
+	public static final int CHAR = 18; 
 	public static final int CHAR_ARRAY = 1002;
 	public static final int VARBIT = 1562;
 	public static final int VARBIT_ARRAY = 1563;

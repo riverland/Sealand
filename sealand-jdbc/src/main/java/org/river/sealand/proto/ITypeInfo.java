@@ -45,7 +45,7 @@ public interface ITypeInfo {
 	 * @return
 	 * @throws SQLException
 	 */
-	public int getSQLType(int oid) throws SQLException;
+	public Integer getSQLType(Integer oid) throws SQLException;
 
 	/**
 	 * <p>
@@ -55,7 +55,7 @@ public interface ITypeInfo {
 	 * @return
 	 * @throws SQLException
 	 */
-	public int getSQLType(String typeName) throws SQLException;
+	public Integer getSQLType(String typeName) throws SQLException;
 
 	/**
 	 * 根据类型名称获取Oid
@@ -64,7 +64,7 @@ public interface ITypeInfo {
 	 * @return
 	 * @throws SQLException
 	 */
-	public int getOid(String typeName) throws SQLException;
+	public Integer getOid(String typeName) throws SQLException;
 
 	/**
 	 * <p>
@@ -74,7 +74,7 @@ public interface ITypeInfo {
 	 * @return
 	 * @throws SQLException
 	 */
-	public String getTypeName(int oid) throws SQLException;
+	public String getTypeName(Integer oid) throws SQLException;
 
 	/**
 	 * <p>
@@ -84,7 +84,7 @@ public interface ITypeInfo {
 	 * @return
 	 * @throws SQLException
 	 */
-	public int getArrayBaseOid(int arrayOid) throws SQLException;
+	public Integer getArrayBaseOid(Integer arrayOid) throws SQLException;
 
 	/**
 	 * <p>
@@ -94,7 +94,7 @@ public interface ITypeInfo {
 	 * @return
 	 * @throws SQLException
 	 */
-	public int getArrayOid(String eleTypeName) throws SQLException;
+	public Integer getArrayOid(String eleTypeName) throws SQLException;
 
 	/**
 	 * <p>
@@ -104,7 +104,7 @@ public interface ITypeInfo {
 	 * @return
 	 * @throws SQLException
 	 */
-	public char getArrayDelimiter(int oid) throws SQLException;
+	public char getArrayDelimiter(Integer oid) throws SQLException;
 
 	/**
 	 * <p>
@@ -130,7 +130,7 @@ public interface ITypeInfo {
 	 * @return
 	 * @throws SQLException
 	 */
-	public String getJavaClass(int oid) throws SQLException;
+	public Class<?>  getJavaClass(Integer oid) throws SQLException;
 
 	/**
 	 * 获取数据类型的精度
@@ -139,7 +139,7 @@ public interface ITypeInfo {
 	 * @param typmod
 	 * @return
 	 */
-	public int getPrecision(int oid, int typmod);
+	public Integer getPrecision(Integer oid, Integer typmod);
 
 	/**
 	 * 获取数据类型的scale
@@ -148,7 +148,7 @@ public interface ITypeInfo {
 	 * @param typmod
 	 * @return
 	 */
-	public int getScale(int oid, int typmod);
+	public Integer getScale(Integer oid, Integer typmod);
 
 	/**
 	 * <p>
@@ -157,7 +157,7 @@ public interface ITypeInfo {
 	 * @param oid
 	 * @return
 	 */
-	public boolean isCaseSensitive(int oid);
+	public boolean isCaseSensitive(Integer oid);
 
 	/**
 	 * <p>
@@ -166,7 +166,7 @@ public interface ITypeInfo {
 	 * @param oid
 	 * @return
 	 */
-	public boolean isSigned(int oid);
+	public boolean isSigned(Integer oid);
 
 	/**
 	 * <p>
@@ -176,7 +176,7 @@ public interface ITypeInfo {
 	 * @param typmod
 	 * @return
 	 */
-	public int getDisplaySize(int oid, int typmod);
+	public Integer getDisplaySize(Integer oid, Integer typmod);
 
 	/**
 	 * <p>
@@ -185,7 +185,7 @@ public interface ITypeInfo {
 	 * @param oid
 	 * @return
 	 */
-	public int getMaximumPrecision(int oid);
+	public Integer getMaximumPrecision(Integer oid);
 
 	/**
 	 * 是否加引号
@@ -194,6 +194,6 @@ public interface ITypeInfo {
 	 * @return
 	 * @throws SQLException
 	 */
-	public boolean requiresQuoting(int oid) throws SQLException;
+	public boolean requiresQuoting(Integer oid) throws SQLException;
 
 }
