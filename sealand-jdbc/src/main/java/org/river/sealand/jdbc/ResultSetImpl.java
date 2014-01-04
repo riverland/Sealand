@@ -19,6 +19,7 @@ import java.sql.SQLXML;
 import java.sql.Statement;
 import java.sql.Time;
 import java.sql.Timestamp;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
 import java.util.Map;
@@ -49,12 +50,13 @@ public class ResultSetImpl extends JdbcWrapper implements ResultSet, IResultHand
 	private IProtoStream protoStream;
 
 	// 状态数据
-	protected List<?> rows;
+	protected List<byte[][]> rows = new ArrayList<byte[][]>();
 	protected int current_row = -1;
 	protected int row_offset;
 	protected byte[][] this_row;
-	protected ResultSetMetaDataImpl metaData=new ResultSetMetaDataImpl();
+	protected ResultSetMetaDataImpl metaData = new ResultSetMetaDataImpl();
 	protected Object lock;
+	protected boolean bufferCompleted = false;
 
 	public ResultSetImpl(int maxFieldSize, int maxRows, int queryTimeout, int fetchSize, int fetchDirection, IProtoStream protoStream) {
 		this.maxFieldSize = maxFieldSize;
@@ -90,13 +92,27 @@ public class ResultSetImpl extends JdbcWrapper implements ResultSet, IResultHand
 
 	@Override
 	public boolean next() throws SQLException {
-		return false;
+		if (current_row == this.rows.size()) {
+			if (this.bufferCompleted) {
+				return false;
+			} else {
+				try {
+					lock.wait();
+				} catch (InterruptedException e) {
+					log.error(e.getLocalizedMessage());
+					throw new SQLException(e);
+				}
+			}
+		}
+
+		current_row++;
+		this_row = this.rows.get(current_row);
+		return true;
 	}
 
 	@Override
 	public void close() throws SQLException {
-		// TODO Auto-generated method stub
-
+		
 	}
 
 	@Override
@@ -1238,33 +1254,49 @@ public class ResultSetImpl extends JdbcWrapper implements ResultSet, IResultHand
 					Message msg = protoStream.receive();
 					this.handleMsg(msg);
 				} catch (Throwable e) {
-					//error logic
+					// error logic
 				}
 			}
 		}
 
 		/*
 		 * 处理收到的协议消息
+		 * 
 		 * @param msg
 		 */
 		private void handleMsg(Message msg) {
-			Message.Type type=msg.getType();
-			switch(type){
+			Message.Type type = msg.getType();
+			switch (type) {
 			case ROW_DESC:
-				List<Field> fields=ProtoUtils.decodeRowDescMsg(msg);
+				List<Field> fields = ProtoUtils.decodeRowDescMsg(msg);
 				this.handleRowDesc(fields);
-				return ;
-				
-			
+				return;
+			case DATA_TRANSFER:
+				this.handleRowData(msg);
+				return;
 			}
 		}
-		
+
 		/*
 		 * 处理记录描述消息
+		 * 
 		 * @param fields
 		 */
-		private void handleRowDesc(List<Field> fields){
+		private void handleRowDesc(List<Field> fields) {
 			metaData.setFields(fields);
+		}
+
+		/*
+		 * 处理行数据信息
+		 * 
+		 * @param msg
+		 */
+		private void handleRowData(Message msg) {
+			synchronized (lock) {
+				byte[][] row = ProtoUtils.decodeRowData(msg);
+				rows.add(row);
+				lock.notifyAll();
+			}
 		}
 
 	}

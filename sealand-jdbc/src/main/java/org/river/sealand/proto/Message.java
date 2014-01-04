@@ -47,8 +47,13 @@ public class Message {
 	 * @since Dec 25, 2013
 	 */
 	public static enum Type {
+		/**异步消息*/
 		ASYNC_NOTIFY('A'),
+		/**列元数据信息*/
 		ROW_DESC('T'),
+		/**结果集数据传输中的一行数据信息*/
+		DATA_TRANSFER('D'),
+		/**没有数据*/
 		NO_DATA('N');
 
 		private char value;
