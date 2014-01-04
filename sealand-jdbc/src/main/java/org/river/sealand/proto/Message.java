@@ -47,7 +47,9 @@ public class Message {
 	 * @since Dec 25, 2013
 	 */
 	public static enum Type {
-		ROW_DESC('T');
+		ASYNC_NOTIFY('A'),
+		ROW_DESC('T'),
+		NO_DATA('N');
 
 		private char value;
 

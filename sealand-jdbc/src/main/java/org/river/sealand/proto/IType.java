@@ -31,7 +31,23 @@ public interface IType {
 	 * @return
 	 * @throws SQLException
 	 */
-	public Class<?>  getJavaClass() throws SQLException;
+	public Class<?>  getJavaClass();
+	
+
+	/**
+	 * <p>
+	 * 获取sqlType {@link java.sql.Types}
+	 * @return
+	 */
+	public Integer getSqlType();
+
+	/**
+	 * <p>
+	 * 获取数组Oid
+	 * @return
+	 */
+	public Integer getArrayOid();
+
 
 	/**
 	 * 获取数据类型的精度

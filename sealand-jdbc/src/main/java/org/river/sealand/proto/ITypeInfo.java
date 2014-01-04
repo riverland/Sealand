@@ -26,7 +26,7 @@ public interface ITypeInfo {
 	 *            对应java类型
 	 * @param arrayOid
 	 */
-	public void addCoreType(String typeName, Integer oid, Integer sqlType, String javaClass, Integer arrayOid);
+	public void addCoreType(IType type);
 
 	/**
 	 * <p>

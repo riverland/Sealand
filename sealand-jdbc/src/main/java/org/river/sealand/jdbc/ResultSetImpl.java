@@ -23,8 +23,11 @@ import java.util.Calendar;
 import java.util.List;
 import java.util.Map;
 
+import org.river.sealand.jdbc.support.Field;
 import org.river.sealand.jdbc.support.IResultHandler;
 import org.river.sealand.proto.IProtoStream;
+import org.river.sealand.proto.Message;
+import org.river.sealand.proto.ProtoUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -50,6 +53,7 @@ public class ResultSetImpl extends JdbcWrapper implements ResultSet, IResultHand
 	protected int current_row = -1;
 	protected int row_offset;
 	protected byte[][] this_row;
+	protected ResultSetMetaDataImpl metaData=new ResultSetMetaDataImpl();
 	protected Object lock;
 
 	public ResultSetImpl(int maxFieldSize, int maxRows, int queryTimeout, int fetchSize, int fetchDirection, IProtoStream protoStream) {
@@ -1230,8 +1234,37 @@ public class ResultSetImpl extends JdbcWrapper implements ResultSet, IResultHand
 		@Override
 		public void run() {
 			while (alive) {
-				
+				try {
+					Message msg = protoStream.receive();
+					this.handleMsg(msg);
+				} catch (Throwable e) {
+					//error logic
+				}
 			}
+		}
+
+		/*
+		 * 处理收到的协议消息
+		 * @param msg
+		 */
+		private void handleMsg(Message msg) {
+			Message.Type type=msg.getType();
+			switch(type){
+			case ROW_DESC:
+				List<Field> fields=ProtoUtils.decodeRowDescMsg(msg);
+				this.handleRowDesc(fields);
+				return ;
+				
+			
+			}
+		}
+		
+		/*
+		 * 处理记录描述消息
+		 * @param fields
+		 */
+		private void handleRowDesc(List<Field> fields){
+			metaData.setFields(fields);
 		}
 
 	}

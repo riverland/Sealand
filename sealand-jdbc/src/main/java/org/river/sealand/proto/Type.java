@@ -68,7 +68,7 @@ public enum Type implements IType {
 	
 	@Override
 	public String getTypeName() {
-		return this.getTypeName();
+		return this.typeName;
 	}
 
 	@Override
@@ -77,7 +77,7 @@ public enum Type implements IType {
 	}
 
 	@Override
-	public Class<?> getJavaClass() throws SQLException {
+	public Class<?> getJavaClass(){
 		return this.clazz;
 	}
 
@@ -327,5 +327,15 @@ public enum Type implements IType {
         }
         return true;
     }
+	
+	/**
+	 * 通过oid获取Type
+	 * @param oid
+	 * @return
+	 */
+	public static Type fromOid(int oid){
+		//TOTO 实现
+		return null;
+	}
 
 }
