@@ -1,9 +1,11 @@
 package org.river.sealand.jdbc;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.Reader;
 import java.math.BigDecimal;
 import java.net.URL;
+import java.nio.charset.Charset;
 import java.sql.Array;
 import java.sql.Blob;
 import java.sql.Clob;
@@ -19,6 +21,7 @@ import java.sql.SQLXML;
 import java.sql.Statement;
 import java.sql.Time;
 import java.sql.Timestamp;
+import java.sql.Types;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
@@ -29,6 +32,7 @@ import org.river.sealand.jdbc.support.IResultHandler;
 import org.river.sealand.proto.IProtoStream;
 import org.river.sealand.proto.Message;
 import org.river.sealand.proto.ProtoUtils;
+import org.river.sealand.utils.NumberUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -48,15 +52,19 @@ public class ResultSetImpl extends JdbcWrapper implements ResultSet, IResultHand
 	protected final int fetchSize;
 	protected final int fetchDirection;
 	private IProtoStream protoStream;
+	private Charset charset;
 
 	// 状态数据
 	protected List<byte[][]> rows = new ArrayList<byte[][]>();
 	protected int current_row = -1;
 	protected int row_offset;
 	protected byte[][] this_row;
+	protected boolean wasNull = false;
 	protected ResultSetMetaDataImpl metaData = new ResultSetMetaDataImpl();
 	protected Object lock;
 	protected boolean bufferCompleted = false;
+	protected Status status = Status.NEW;
+	private ReceiveThread rcvThread;
 
 	public ResultSetImpl(int maxFieldSize, int maxRows, int queryTimeout, int fetchSize, int fetchDirection, IProtoStream protoStream) {
 		this.maxFieldSize = maxFieldSize;
@@ -65,6 +73,8 @@ public class ResultSetImpl extends JdbcWrapper implements ResultSet, IResultHand
 		this.fetchSize = fetchSize;
 		this.fetchDirection = fetchDirection;
 		this.protoStream = protoStream;
+		this.rcvThread = new ReceiveThread();
+		rcvThread.start();
 	}
 
 	@Override
@@ -112,30 +122,71 @@ public class ResultSetImpl extends JdbcWrapper implements ResultSet, IResultHand
 
 	@Override
 	public void close() throws SQLException {
-		
+		byte[] closeMsg = ProtoUtils.pack4ResultSetClose();
+		try {
+			protoStream.send(closeMsg);
+		} catch (IOException e) {
+			log.error(e.getLocalizedMessage());
+			throw new SQLException(e);
+		} finally {
+			this.rows = null;
+			this.metaData = null;
+			this.status = Status.CLOSED;
+			this.rcvThread.alive = false;
+		}
 	}
 
 	@Override
 	public boolean wasNull() throws SQLException {
-		// TODO Auto-generated method stub
-		return false;
+		return wasNull;
 	}
 
 	@Override
 	public String getString(int columnIndex) throws SQLException {
-		// TODO Auto-generated method stub
-		return null;
+		this.checkCollumn(columnIndex);
+		if (wasNull) {
+			return null;
+		}
+
+		if (this.isCollumnBin(columnIndex)) {
+			Object obj = getObject(columnIndex, this.metaData.getFields().get(columnIndex - 1));
+			if (obj == null) {
+				return null;
+			}
+			return obj.toString();
+		}
+
+		return new String(this_row[columnIndex - 1], charset);
 	}
 
 	@Override
 	public boolean getBoolean(int columnIndex) throws SQLException {
-		// TODO Auto-generated method stub
-		return false;
+		this.checkCollumn(columnIndex);
+		if (wasNull) {
+			return false;
+		}
+
+		if (this.isCollumnBin(columnIndex)) {
+			final int col = columnIndex - 1;
+			long longValue = NumberUtils.readInt8(this_row[col]);
+			if (longValue == 0) {
+				return false;
+			}
+
+			String value = new String(this_row[col]);
+			if (value.trim() == "") {
+				return false;
+			}
+
+			return true;
+		}
+
+		String str = getString(columnIndex);
+		return str != null && "true".equalsIgnoreCase(str.trim());
 	}
 
 	@Override
 	public byte getByte(int columnIndex) throws SQLException {
-		// TODO Auto-generated method stub
 		return 0;
 	}
 
@@ -1237,6 +1288,99 @@ public class ResultSetImpl extends JdbcWrapper implements ResultSet, IResultHand
 		return null;
 	}
 
+	/*
+	 * 检查列
+	 * 
+	 * @param column
+	 * 
+	 * @throws SQLException
+	 */
+	protected void checkCollumn(int column) throws SQLException {
+		if (this_row == null || column < -1 || column > this_row.length) {
+			throw new SQLException("column[" + column + "] out of index");
+		}
+
+		this.wasNull = (this_row[column] == null);
+	}
+
+	/*
+	 * 判断列内容是否为二进制类型
+	 * 
+	 * @param column
+	 * 
+	 * @return
+	 */
+	protected boolean isCollumnBin(int column) {
+		Field field = this.metaData.getFields().get(column);
+		return getSQLType(column) != Types.VARCHAR && field.getFormat() == Field.FORMAT_BIN;
+	}
+
+	/*
+	 * 获取SQLType
+	 * 
+	 * @param column
+	 * 
+	 * @return
+	 */
+	protected int getSQLType(int column) {
+		Field field = this.metaData.getFields().get(column);
+		return field.getType().getSqlType();
+	}
+
+	/*
+	 * 参照postgresql
+	 * 
+	 * @param columnIndex
+	 * 
+	 * @param field
+	 * 
+	 * @return
+	 * 
+	 * @throws SQLException
+	 */
+	protected Object getObject(int columnIndex, Field field) throws SQLException {
+		switch (getSQLType(columnIndex)) {
+		case Types.BIT:
+			return getBoolean(columnIndex) ? Boolean.TRUE : Boolean.FALSE;
+		case Types.TINYINT:
+		case Types.SMALLINT:
+		case Types.INTEGER:
+			return new Integer(getInt(columnIndex));
+		case Types.BIGINT:
+			return new Long(getLong(columnIndex));
+		case Types.NUMERIC:
+		case Types.DECIMAL:
+			return getBigDecimal(columnIndex, -1);
+		case Types.REAL:
+			return new Float(getFloat(columnIndex));
+		case Types.FLOAT:
+		case Types.DOUBLE:
+			return new Double(getDouble(columnIndex));
+		case Types.CHAR:
+		case Types.VARCHAR:
+		case Types.LONGVARCHAR:
+			return getString(columnIndex);
+		case Types.DATE:
+			return getDate(columnIndex);
+		case Types.TIME:
+			return getTime(columnIndex);
+		case Types.TIMESTAMP:
+			return getTimestamp(columnIndex, null);
+		case Types.BINARY:
+		case Types.VARBINARY:
+		case Types.LONGVARBINARY:
+			return getBytes(columnIndex);
+		case Types.ARRAY:
+			return getArray(columnIndex);
+		case Types.CLOB:
+			return getClob(columnIndex);
+		case Types.BLOB:
+			return getBlob(columnIndex);
+		}
+
+		return null;
+	}
+
 	/**
 	 * <p>
 	 * 接受数据线程
@@ -1299,6 +1443,10 @@ public class ResultSetImpl extends JdbcWrapper implements ResultSet, IResultHand
 			}
 		}
 
+	}
+
+	public static enum Status {
+		NEW, BUFFERED, CLOSED;
 	}
 
 }

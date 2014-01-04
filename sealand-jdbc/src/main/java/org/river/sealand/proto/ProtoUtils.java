@@ -36,6 +36,20 @@ public class ProtoUtils {
 
 	/**
 	 * <p>
+	 * 构建关闭resultSet
+	 * 
+	 * @return
+	 */
+	public static byte[] pack4ResultSetClose() {
+		byte[] msg = new byte[5];
+		byte[] len = NumberUtils.writeInt4(msg.length);
+		System.arraycopy(len, 0, msg, 0, msg.length - 1);
+		msg[4] = (byte) Message.Type.RS_CLOSE.getValue();
+		return msg;
+	}
+
+	/**
+	 * <p>
 	 * 解析行描述消息
 	 * 
 	 * @param msg

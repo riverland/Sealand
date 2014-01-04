@@ -54,7 +54,9 @@ public class Message {
 		/**结果集数据传输中的一行数据信息*/
 		DATA_TRANSFER('D'),
 		/**没有数据*/
-		NO_DATA('N');
+		NO_DATA('N'),
+		/**关闭resultSet*/
+		RS_CLOSE('C');
 
 		private char value;
 

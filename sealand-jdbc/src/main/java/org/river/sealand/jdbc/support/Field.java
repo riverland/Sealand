@@ -12,6 +12,8 @@ import org.river.sealand.proto.Type;
  * @since Jan 4, 2014
  */
 public class Field {
+	public static final int FORMAT_TEXT = 1;
+	public static final int FORMAT_BIN = 5;
 	/** label */
 	private String label;
 
@@ -20,7 +22,7 @@ public class Field {
 
 	/** 所属的schema */
 	private String schemaName = "";
-	
+
 	/** 列名 */
 	private String columnName;
 
@@ -33,11 +35,22 @@ public class Field {
 	/** 在表中的列位置 */
 	private int posIndexInTable;
 
+	/** 数据格式 */
+	private int format;
+
 	/** 是否可为null值 */
 	private int nullable = ResultSetMetaData.columnNullableUnknown;
 
 	/** 是否自增长 */
 	private boolean autoIncrement = false;
+
+	public int getFormat() {
+		return format;
+	}
+
+	public void setFormat(int format) {
+		this.format = format;
+	}
 
 	public String getLabel() {
 		return label;
