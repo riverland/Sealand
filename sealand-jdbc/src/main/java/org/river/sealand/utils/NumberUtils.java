@@ -89,4 +89,14 @@ public class NumberUtils {
 		return (trim[0] & 0xFF) << 56 | (trim[1] & 0xFF) << 48 | (trim[2] & 0xFF) << 40 | (trim[3] & 0xFF) << 32 | (trim[4] & 0xFF) << 24 | (trim[5] & 0xFF) << 16 | (trim[6] & 0xFF) << 8
 				| (trim[7] & 0xFF);
 	}
+	
+	/**
+	 * <p>
+	 * 读取float数据
+	 * @param data
+	 * @return
+	 */
+	public static float readFloat(byte[] data){
+		return 0;
+	}
 }

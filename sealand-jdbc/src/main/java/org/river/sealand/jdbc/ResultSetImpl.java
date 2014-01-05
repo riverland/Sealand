@@ -31,6 +31,7 @@ import org.river.sealand.jdbc.support.Field;
 import org.river.sealand.jdbc.support.IResultHandler;
 import org.river.sealand.proto.IProtoStream;
 import org.river.sealand.proto.Message;
+import org.river.sealand.proto.Oid;
 import org.river.sealand.proto.ProtoUtils;
 import org.river.sealand.utils.NumberUtils;
 import org.slf4j.Logger;
@@ -187,36 +188,133 @@ public class ResultSetImpl extends JdbcWrapper implements ResultSet, IResultHand
 
 	@Override
 	public byte getByte(int columnIndex) throws SQLException {
-		return 0;
+		this.checkCollumn(columnIndex);
+		if (wasNull) {
+			return 0;
+		}
+
+		if (this.isCollumnBin(columnIndex)) {
+			final int col = columnIndex - 1;
+			return (byte) NumberUtils.readInt8(this_row[col]);
+		}
+
+		String str = this.getString(columnIndex);
+		if (str == null || str.trim().equals("")) {
+			return 0;
+		}
+
+		str = str.trim();
+		try {
+			return Byte.parseByte(str);
+		} catch (NumberFormatException e) {
+			throw new SQLException(e);
+		}
 	}
 
 	@Override
 	public short getShort(int columnIndex) throws SQLException {
-		// TODO Auto-generated method stub
-		return 0;
+		this.checkCollumn(columnIndex);
+		if (wasNull) {
+			return 0;
+		}
+
+		if (this.isCollumnBin(columnIndex)) {
+			final int col = columnIndex - 1;
+			return (short) NumberUtils.readInt8(this_row[col]);
+		}
+
+		String str = this.getString(columnIndex);
+		if (str == null || str.trim().equals("")) {
+			return 0;
+		}
+
+		str = str.trim();
+		try {
+			return Short.parseShort(str);
+		} catch (NumberFormatException e) {
+			throw new SQLException(e);
+		}
 	}
 
 	@Override
 	public int getInt(int columnIndex) throws SQLException {
-		// TODO Auto-generated method stub
-		return 0;
+		this.checkCollumn(columnIndex);
+		if (wasNull) {
+			return 0;
+		}
+
+		if (this.isCollumnBin(columnIndex)) {
+			final int col = columnIndex - 1;
+			return (int) NumberUtils.readInt8(this_row[col]);
+		}
+
+		String str = this.getString(columnIndex);
+		if (str == null || str.trim().equals("")) {
+			return 0;
+		}
+
+		str = str.trim();
+		try {
+			return Integer.parseInt(str);
+		} catch (NumberFormatException e) {
+			throw new SQLException(e);
+		}
 	}
 
 	@Override
 	public long getLong(int columnIndex) throws SQLException {
-		// TODO Auto-generated method stub
-		return 0;
+		this.checkCollumn(columnIndex);
+		if (wasNull) {
+			return 0;
+		}
+
+		if (this.isCollumnBin(columnIndex)) {
+			final int col = columnIndex - 1;
+			return NumberUtils.readInt8(this_row[col]);
+		}
+
+		String str = this.getString(columnIndex);
+		if (str == null || str.trim().equals("")) {
+			return 0;
+		}
+
+		str = str.trim();
+		try {
+			return Long.parseLong(str);
+		} catch (NumberFormatException e) {
+			throw new SQLException(e);
+		}
 	}
 
 	@Override
 	public float getFloat(int columnIndex) throws SQLException {
-		// TODO Auto-generated method stub
-		return 0;
+		this.checkCollumn(columnIndex);
+		if (wasNull) {
+			return 0;
+		}
+
+		if (this.isCollumnBin(columnIndex)) {
+			final int col = columnIndex - 1;
+			int oid=this.metaData.getFields().get(col).getType().getOid();
+			return (float)this.readFloat(this_row[col], oid);
+		}
+
+		String str = this.getString(columnIndex);
+		if (str == null || str.trim().equals("")) {
+			return 0;
+		}
+
+		str = str.trim();
+		try {
+			return Float.parseFloat(str);
+		} catch (NumberFormatException e) {
+			throw new SQLException(e);
+		}
 	}
 
 	@Override
 	public double getDouble(int columnIndex) throws SQLException {
-		// TODO Auto-generated method stub
+
 		return 0;
 	}
 
@@ -1379,6 +1477,35 @@ public class ResultSetImpl extends JdbcWrapper implements ResultSet, IResultHand
 		}
 
 		return null;
+	}
+
+	/*
+	 * 读取浮点数据类型 
+	 * @param data
+	 * @param oid
+	 * @return
+	 */
+	private double readFloat(byte[] data, int oid) {
+		switch (oid) {
+		case Oid.INT2:
+			return NumberUtils.readInt2(data);
+
+		case Oid.INT4:
+			return NumberUtils.readInt4(data);
+
+		case Oid.INT8:
+			return NumberUtils.readInt8(data);
+
+		case Oid.FLOAT4:
+			int intBit = NumberUtils.readInt4(data);
+			return Float.intBitsToFloat(intBit);
+
+		case Oid.FLOAT8:
+			long longBit = NumberUtils.readInt8(data);
+			return Double.longBitsToDouble(longBit);
+		}
+
+		return 0;
 	}
 
 	/**
