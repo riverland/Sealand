@@ -1,8 +1,10 @@
 package org.river.sealand.jdbc;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Reader;
+import java.io.UnsupportedEncodingException;
 import java.math.BigDecimal;
 import java.net.URL;
 import java.nio.charset.Charset;
@@ -22,6 +24,7 @@ import java.sql.Statement;
 import java.sql.Time;
 import java.sql.Timestamp;
 import java.sql.Types;
+import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
@@ -33,6 +36,7 @@ import org.river.sealand.proto.IProtoStream;
 import org.river.sealand.proto.Message;
 import org.river.sealand.proto.Oid;
 import org.river.sealand.proto.ProtoUtils;
+import org.river.sealand.utils.DateUtils;
 import org.river.sealand.utils.NumberUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -295,8 +299,8 @@ public class ResultSetImpl extends JdbcWrapper implements ResultSet, IResultHand
 
 		if (this.isCollumnBin(columnIndex)) {
 			final int col = columnIndex - 1;
-			int oid=this.metaData.getFields().get(col).getType().getOid();
-			return (float)this.readFloat(this_row[col], oid);
+			int oid = this.metaData.getFields().get(col).getType().getOid();
+			return (float) this.readFloat(this_row[col], oid);
 		}
 
 		String str = this.getString(columnIndex);
@@ -314,157 +318,259 @@ public class ResultSetImpl extends JdbcWrapper implements ResultSet, IResultHand
 
 	@Override
 	public double getDouble(int columnIndex) throws SQLException {
+		this.checkCollumn(columnIndex);
+		if (wasNull) {
+			return 0;
+		}
 
-		return 0;
+		if (this.isCollumnBin(columnIndex)) {
+			final int col = columnIndex - 1;
+			int oid = this.metaData.getFields().get(col).getType().getOid();
+			return this.readFloat(this_row[col], oid);
+		}
+
+		String str = this.getString(columnIndex);
+		if (str == null || str.trim().equals("")) {
+			return 0;
+		}
+
+		str = str.trim();
+		try {
+			return Double.parseDouble(str);
+		} catch (NumberFormatException e) {
+			throw new SQLException(e);
+		}
 	}
 
 	@Override
 	public BigDecimal getBigDecimal(int columnIndex, int scale) throws SQLException {
-		// TODO Auto-generated method stub
-		return null;
+		this.checkCollumn(columnIndex);
+		if (wasNull) {
+			return null;
+		}
+
+		String str = this.getString(columnIndex);
+		if (str == null || str.trim().isEmpty()) {
+			return null;
+		}
+
+		BigDecimal dec = null;
+		try {
+			dec = new BigDecimal(str);
+			if (scale > -1) {
+				dec.setScale(scale);
+			}
+		} catch (NumberFormatException e) {
+			throw new SQLException(e);
+		}
+		return dec;
 	}
 
 	@Override
 	public byte[] getBytes(int columnIndex) throws SQLException {
-		// TODO Auto-generated method stub
-		return null;
+		this.checkCollumn(columnIndex);
+		if (wasNull) {
+			return null;
+		}
+
+		// TODO Blob Clob实现
+		return this_row[columnIndex - 1];
 	}
 
 	@Override
 	public Date getDate(int columnIndex) throws SQLException {
-		// TODO Auto-generated method stub
-		return null;
+		this.checkCollumn(columnIndex);
+		if (wasNull) {
+			return null;
+		}
+
+		String dateStr = this.getString(columnIndex);
+		if (dateStr == null || dateStr.trim().isEmpty()) {
+			return null;
+		}
+
+		java.util.Date date = null;
+		try {
+			date = DateUtils.parse(dateStr, DateUtils.YYYYMMDDHHMMSSSSS);
+		} catch (ParseException e) {
+			throw new SQLException(e);
+		}
+		return new Date(date.getTime());
 	}
 
 	@Override
 	public Time getTime(int columnIndex) throws SQLException {
-		// TODO Auto-generated method stub
-		return null;
+		this.checkCollumn(columnIndex);
+		if (wasNull) {
+			return null;
+		}
+
+		String dateStr = this.getString(columnIndex);
+		if (dateStr == null || dateStr.trim().isEmpty()) {
+			return null;
+		}
+
+		java.util.Date date = null;
+		try {
+			date = DateUtils.parse(dateStr, DateUtils.YYYYMMDDHHMMSSSSS);
+		} catch (ParseException e) {
+			throw new SQLException(e);
+		}
+		return new Time(date.getTime());
 	}
 
 	@Override
 	public Timestamp getTimestamp(int columnIndex) throws SQLException {
-		// TODO Auto-generated method stub
-		return null;
+		this.checkCollumn(columnIndex);
+		if (wasNull) {
+			return null;
+		}
+
+		Time time = this.getTime(columnIndex);
+		return new Timestamp(time.getTime());
 	}
 
 	@Override
 	public InputStream getAsciiStream(int columnIndex) throws SQLException {
-		// TODO Auto-generated method stub
-		return null;
+		this.checkCollumn(columnIndex);
+		if (wasNull) {
+			return null;
+		}
+
+		try {
+			return new ByteArrayInputStream(getString(columnIndex).getBytes("ASCII"));
+		} catch (UnsupportedEncodingException e) {
+			throw new SQLException(e);
+		}
 	}
 
 	@Override
 	public InputStream getUnicodeStream(int columnIndex) throws SQLException {
-		// TODO Auto-generated method stub
-		return null;
+		this.checkCollumn(columnIndex);
+		if (wasNull) {
+			return null;
+		}
+
+		try {
+			return new ByteArrayInputStream(getString(columnIndex).getBytes("UTF-8"));
+		} catch (UnsupportedEncodingException e) {
+			throw new SQLException(e);
+		}
 	}
 
 	@Override
 	public InputStream getBinaryStream(int columnIndex) throws SQLException {
-		// TODO Auto-generated method stub
+		this.checkCollumn(columnIndex);
+		if (wasNull) {
+			return null;
+		}
+
+		byte b[] = getBytes(columnIndex);
+		if (b != null) {
+			return new ByteArrayInputStream(b);
+		}
+
 		return null;
 	}
 
 	@Override
 	public String getString(String columnLabel) throws SQLException {
-		// TODO Auto-generated method stub
-		return null;
+		int columnIndex = this.metaData.getColumnIndex(columnLabel);
+		return this.getString(columnIndex);
 	}
 
 	@Override
 	public boolean getBoolean(String columnLabel) throws SQLException {
-		// TODO Auto-generated method stub
-		return false;
+		int columnIndex = this.metaData.getColumnIndex(columnLabel);
+		return this.getBoolean(columnIndex);
 	}
 
 	@Override
 	public byte getByte(String columnLabel) throws SQLException {
-		// TODO Auto-generated method stub
-		return 0;
+		int columnIndex = this.metaData.getColumnIndex(columnLabel);
+		return this.getByte(columnIndex);
 	}
 
 	@Override
 	public short getShort(String columnLabel) throws SQLException {
-		// TODO Auto-generated method stub
-		return 0;
+		int columnIndex = this.metaData.getColumnIndex(columnLabel);
+		return this.getShort(columnIndex);
 	}
 
 	@Override
 	public int getInt(String columnLabel) throws SQLException {
-		// TODO Auto-generated method stub
-		return 0;
+		int columnIndex = this.metaData.getColumnIndex(columnLabel);
+		return this.getInt(columnIndex);
 	}
 
 	@Override
 	public long getLong(String columnLabel) throws SQLException {
-		// TODO Auto-generated method stub
-		return 0;
+		int columnIndex = this.metaData.getColumnIndex(columnLabel);
+		return this.getLong(columnIndex);
 	}
 
 	@Override
 	public float getFloat(String columnLabel) throws SQLException {
-		// TODO Auto-generated method stub
-		return 0;
+		int columnIndex = this.metaData.getColumnIndex(columnLabel);
+		return this.getFloat(columnIndex);
 	}
 
 	@Override
 	public double getDouble(String columnLabel) throws SQLException {
-		// TODO Auto-generated method stub
-		return 0;
+		int columnIndex = this.metaData.getColumnIndex(columnLabel);
+		return this.getDouble(columnIndex);
 	}
 
 	@Override
 	public BigDecimal getBigDecimal(String columnLabel, int scale) throws SQLException {
-		// TODO Auto-generated method stub
-		return null;
+		int columnIndex = this.metaData.getColumnIndex(columnLabel);
+		return this.getBigDecimal(columnIndex, scale);
 	}
 
 	@Override
 	public byte[] getBytes(String columnLabel) throws SQLException {
-		// TODO Auto-generated method stub
-		return null;
+		int columnIndex = this.metaData.getColumnIndex(columnLabel);
+		return this.getBytes(columnIndex);
 	}
 
 	@Override
 	public Date getDate(String columnLabel) throws SQLException {
-		// TODO Auto-generated method stub
-		return null;
+		int columnIndex = this.metaData.getColumnIndex(columnLabel);
+		return this.getDate(columnIndex);
 	}
 
 	@Override
 	public Time getTime(String columnLabel) throws SQLException {
-		// TODO Auto-generated method stub
-		return null;
+		int columnIndex = this.metaData.getColumnIndex(columnLabel);
+		return this.getTime(columnIndex);
 	}
 
 	@Override
 	public Timestamp getTimestamp(String columnLabel) throws SQLException {
-		// TODO Auto-generated method stub
-		return null;
+		int columnIndex = this.metaData.getColumnIndex(columnLabel);
+		return this.getTimestamp(columnIndex);
 	}
 
 	@Override
 	public InputStream getAsciiStream(String columnLabel) throws SQLException {
-		// TODO Auto-generated method stub
-		return null;
+		int columnIndex = this.metaData.getColumnIndex(columnLabel);
+		return this.getAsciiStream(columnIndex);
 	}
 
 	@Override
 	public InputStream getUnicodeStream(String columnLabel) throws SQLException {
-		// TODO Auto-generated method stub
-		return null;
+		int columnIndex = this.metaData.getColumnIndex(columnLabel);
+		return this.getUnicodeStream(columnIndex);
 	}
 
 	@Override
 	public InputStream getBinaryStream(String columnLabel) throws SQLException {
-		// TODO Auto-generated method stub
-		return null;
+		int columnIndex = this.metaData.getColumnIndex(columnLabel);
+		return this.getBinaryStream(columnIndex);
 	}
 
 	@Override
 	public SQLWarning getWarnings() throws SQLException {
-		// TODO Auto-generated method stub
 		return null;
 	}
 
@@ -1480,9 +1586,12 @@ public class ResultSetImpl extends JdbcWrapper implements ResultSet, IResultHand
 	}
 
 	/*
-	 * 读取浮点数据类型 
+	 * 读取浮点数据类型
+	 * 
 	 * @param data
+	 * 
 	 * @param oid
+	 * 
 	 * @return
 	 */
 	private double readFloat(byte[] data, int oid) {

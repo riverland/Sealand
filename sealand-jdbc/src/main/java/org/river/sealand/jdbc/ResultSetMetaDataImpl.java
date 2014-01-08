@@ -1,10 +1,11 @@
 package org.river.sealand.jdbc;
 
-import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.util.List;
+import java.util.Map;
 
 import org.river.sealand.jdbc.support.Field;
+import org.river.sealand.jdbc.support.IResultSetAppend;
 
 /**
  * <p>
@@ -13,7 +14,7 @@ import org.river.sealand.jdbc.support.Field;
  * @author river
  * @since Jan 4, 2014
  */
-public class ResultSetMetaDataImpl implements ResultSetMetaData{
+public class ResultSetMetaDataImpl implements IResultSetAppend {
 	/** 结果集名称 */
 	private String resultName;
 
@@ -23,6 +24,8 @@ public class ResultSetMetaDataImpl implements ResultSetMetaData{
 	/** 当前行 */
 	private int currentRowIndex;
 
+	/** 列名和列index */
+	private Map<String, Integer> labelNameIndex;
 
 	@Override
 	public <T> T unwrap(Class<T> iface) throws SQLException {
@@ -161,7 +164,7 @@ public class ResultSetMetaDataImpl implements ResultSetMetaData{
 		// TODO Auto-generated method stub
 		return null;
 	}
-	
+
 	public String getResultName() {
 		return resultName;
 	}
@@ -184,6 +187,12 @@ public class ResultSetMetaDataImpl implements ResultSetMetaData{
 
 	public void setCurrentRowIndex(int currentRowIndex) {
 		this.currentRowIndex = currentRowIndex;
+	}
+
+	@Override
+	public int getColumnIndex(String label) {
+		// TODO Auto-generated method stub
+		return 0;
 	}
 
 }
